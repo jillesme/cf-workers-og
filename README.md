@@ -1,13 +1,14 @@
 # cf-workers-og
 
-Generate Open Graph images on Cloudflare Workers with Vite support.
+Generate Open Graph images on Cloudflare Workers with Node.js bindings for local Vite dev.
 
 A thin wrapper around [@cf-wasm/og](https://github.com/fineshopdesign/cf-wasm) that provides:
 
+- Designed for Workers; includes Node.js bindings for local dev
 - Works with both **Vite dev** and **Wrangler dev**
 - Uses modern, maintained WASM dependencies
-- Robust HTML string parsing (using battle-tested libraries)
-- Backwards-compatible API for workers-og users (via `cf-workers-og/compat`)
+- Optional HTML string parsing (using battle-tested libraries)
+- Backwards-compatible entrypoint for workers-og users (via `cf-workers-og/compat`)
 - TypeScript support
 
 ## Installation
@@ -20,7 +21,7 @@ pnpm add cf-workers-og
 
 ## Quick Start
 
-### Basic Usage (JSX)
+### Basic Usage (JSX, recommended)
 
 ```tsx
 import { ImageResponse } from "cf-workers-og";
@@ -86,6 +87,7 @@ export default {
 
 ### HTML String Usage
 
+Use HTML parsing only if you need it. For new projects, JSX is the simplest and most reliable.
 HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint. For workers-og constructor compatibility, use `cf-workers-og/compat`.
 
 ```typescript
@@ -120,6 +122,15 @@ export default defineConfig({
 });
 ```
 
+Vite dev runs in Node.js, so this package ships Node bindings that should be picked automatically. If your bundler does not respect export conditions, use explicit paths like `cf-workers-og/node`.
+
+## Which entrypoint should I use?
+
+- `cf-workers-og` (recommended): JSX input only, clean API for new users.
+- `cf-workers-og/html`: adds `parseHtml` and accepts HTML strings in `ImageResponse.create`.
+- `cf-workers-og/compat`: legacy constructor behavior and HTML strings for migrating from workers-og.
+- If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`, `cf-workers-og/workerd`, and their `/html` or `/compat` variants.
+
 ## Why Not workers-og?
 
 The original [workers-og](https://github.com/syedashar1/workers-og) library has several issues:
@@ -142,7 +153,7 @@ The original [workers-og](https://github.com/syedashar1/workers-og) library has 
 
 ### Entry points
 
-Use `cf-workers-og` for the default Workers entry, `cf-workers-og/html` for HTML strings, and `cf-workers-og/compat` for legacy constructor behavior. If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or `cf-workers-og/workerd` (and the `/html` or `/compat` variants).
+Use `cf-workers-og` for Workers with JSX input, `cf-workers-og/html` for HTML strings, and `cf-workers-og/compat` only when migrating from workers-og. If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or `cf-workers-og/workerd` (and the `/html` or `/compat` variants).
 
 ### `ImageResponse.create(element, options)`
 
