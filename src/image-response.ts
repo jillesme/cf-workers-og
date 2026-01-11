@@ -69,11 +69,12 @@ export class ImageResponse extends Response {
     } = options;
 
     // Use @cf-wasm/og to generate the image
+    // Note: @cf-wasm/og requires fonts to be an array, not undefined
     const response = await CfImageResponse.async(reactElement, {
       width,
       height,
       format,
-      fonts,
+      fonts: fonts ?? [],
       emoji,
     });
 
