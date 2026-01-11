@@ -86,6 +86,8 @@ export function createImageResponseClass<Input extends ImageInput>(
   }
 
   if (compatConstructor) {
+    // Cast through unknown to model legacy workers-og constructor behavior.
+    // The runtime returns a Promise, but TS cannot express that on classes.
     return ImageResponseCore as unknown as ImageResponseCompatClass<Input>;
   }
 
