@@ -7,7 +7,7 @@ A thin wrapper around [@cf-wasm/og](https://github.com/fineshopdesign/cf-wasm) t
 - Works with both **Vite dev** and **Wrangler dev**
 - Uses modern, maintained WASM dependencies
 - Robust HTML string parsing (using battle-tested libraries)
-- Backwards-compatible API for workers-og users
+- Backwards-compatible API for workers-og users (via `cf-workers-og/compat`)
 - TypeScript support
 
 ## Installation
@@ -86,10 +86,10 @@ export default {
 
 ### HTML String Usage
 
-We added this to be backwards-comatible with workers-og, but prefer JSX. 
+HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint. For workers-og constructor compatibility, use `cf-workers-og/compat`.
 
 ```typescript
-import { ImageResponse, parseHtml } from "cf-workers-og";
+import { ImageResponse, parseHtml } from "cf-workers-og/html";
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -140,9 +140,14 @@ The original [workers-og](https://github.com/syedashar1/workers-og) library has 
 
 ## API Reference
 
+### Entry points
+
+Use `cf-workers-og` for the default Workers entry, `cf-workers-og/html` for HTML strings, and `cf-workers-og/compat` for legacy constructor behavior. If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or `cf-workers-og/workerd` (and the `/html` or `/compat` variants).
+
 ### `ImageResponse.create(element, options)`
 
 Generate an OG image Response.
+Main entrypoint expects a React element; `cf-workers-og/html` also accepts HTML strings.
 
 ```typescript
 const response = await ImageResponse.create(element, {
@@ -160,7 +165,7 @@ const response = await ImageResponse.create(element, {
 
 ### `parseHtml(html)`
 
-Parse an HTML string into React elements for Satori.
+Parse an HTML string into React elements for Satori. Exported from `cf-workers-og/html` and `cf-workers-og/compat`.
 
 ```typescript
 const element = parseHtml('<div style="display: flex;">Hello</div>');
@@ -203,9 +208,11 @@ The `GoogleFont` class caches font files using Cloudflare's Cache API to avoid r
 
 ## Migrating from workers-og
 
+Note that cache is only used if you use GoogleFonts. Otherwise it is a drop-in replacement.
+
 ```diff
 - import { ImageResponse } from 'workers-og';
-+ import { ImageResponse, cache } from 'cf-workers-og';
++ import { ImageResponse, cache } from 'cf-workers-og/compat';
 
 export default {
   async fetch(request, env, ctx) {
@@ -220,7 +227,7 @@ For HTML string users:
 
 ```diff
 - return new ImageResponse(htmlString, options);
-+ import { parseHtml } from 'cf-workers-og';
++ import { ImageResponse, parseHtml } from 'cf-workers-og/html';
 + return ImageResponse.create(parseHtml(htmlString), options);
 ```
 
@@ -235,70 +242,6 @@ This package is a **thin wrapper** (6 KB) around `@cf-wasm/og`. The heavy liftin
 | `htmlparser2` | ~42 KB | HTML parsing (pure JS) |
 
 The WASM files are installed as transitive dependencies - they're not bundled in this package.
-
-## Local Development
-
-To test changes locally before publishing:
-
-```bash
-# In cf-workers-og directory
-pnpm build
-pnpm link --global
-
-# In your Astro/other project
-pnpm link --global cf-workers-og
-```
-
-Then in your Astro project's API route:
-
-```tsx
-// src/pages/og/[...slug].ts (Astro on Cloudflare)
-import type { APIRoute } from "astro";
-import { ImageResponse } from "cf-workers-og";
-
-export const GET: APIRoute = async ({ params }) => {
-  // No cache.setExecutionContext needed - using default font
-  return ImageResponse.create(
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#000", color: "#fff", width: "100%", height: "100%" }}>
-      <h1 style={{ fontSize: 60 }}>Hello {params.slug}</h1>
-    </div>,
-    { width: 1200, height: 630 }
-  );
-};
-```
-
-If using Google Fonts:
-
-```tsx
-import { ImageResponse, GoogleFont, cache } from "cf-workers-og";
-
-export const GET: APIRoute = async ({ params, locals }) => {
-  // Required for GoogleFont caching
-  const ctx = (locals as any).runtime?.ctx;
-  if (ctx) cache.setExecutionContext(ctx);
-
-  return ImageResponse.create(
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#000", color: "#fff", width: "100%", height: "100%" }}>
-      <h1 style={{ fontSize: 60, fontFamily: "Inter" }}>Hello {params.slug}</h1>
-    </div>,
-    {
-      width: 1200,
-      height: 630,
-      fonts: [new GoogleFont("Inter", { weight: 700 })],
-    }
-  );
-};
-```
-
-To unlink after testing:
-
-```bash
-# In your Astro project
-pnpm unlink cf-workers-og
-
-# In cf-workers-og directory
-pnpm unlink --global
-```
 
 ## License
 
