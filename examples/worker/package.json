@@ -1,0 +1,24 @@
+{
+  "name": "cf-workers-og-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "dev:wrangler": "wrangler dev",
+    "build": "vite build",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "cf-workers-og": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.0.0",
+    "@cloudflare/workers-types": "^4.20250610.0",
+    "@types/react": "^18.3.0",
+    "react": "^18.3.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.0.0",
+    "wrangler": "^3.0.0"
+  }
+}

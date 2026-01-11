@@ -1,0 +1,4 @@
+name = "cf-workers-og-example"
+main = "src/index.tsx"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
