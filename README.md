@@ -86,6 +86,8 @@ export default {
 
 ### HTML String Usage
 
+We added this to be backwards-comatible with workers-og, but prefer JSX. 
+
 ```typescript
 import { ImageResponse, parseHtml } from "cf-workers-og";
 

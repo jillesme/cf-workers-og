@@ -10,7 +10,12 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: [
+            "src/__tests__/html-parser.test.ts",
+            "src/__tests__/image-response.test.ts",
+          ],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
