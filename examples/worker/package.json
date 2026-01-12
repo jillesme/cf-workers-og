@@ -10,7 +10,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "cf-workers-og": "^1.0.1"
+    "cf-workers-og": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.0.0",

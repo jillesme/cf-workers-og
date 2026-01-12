@@ -133,21 +133,59 @@ Vite dev runs in Node.js, so this package ships Node bindings that should be pic
 
 ## Why Not workers-og?
 
-The original [workers-og](https://github.com/syedashar1/workers-og) library has several issues:
+The original [workers-og](https://github.com/syedashar1/workers-og) has fundamental issues that make it unsuitable for production use.
 
-| Issue                     | Details                                                                     |
-| ------------------------- | --------------------------------------------------------------------------- |
-| **Outdated WASM**         | Uses yoga-wasm-web 0.3.3 (unmaintained since 2023) and resvg-wasm 2.4.0     |
-| **Console logs**          | Debug logs left in production code (`og.ts:16,18,20`)                       |
-| **Brittle HTML parsing**  | Manual JSON string concatenation (`vdomStr +=`) - error-prone               |
-| **No Vite support**       | Uses esbuild copy loader, incompatible with Vite's WASM handling            |
+### 1. Outdated WASM Dependencies
+
+workers-og uses `yoga-wasm-web@0.3.3` which has been **unmaintained since 2023**. The Yoga project moved to Yoga 3.0 with a `SINGLE_FILE=1` compilation that inlines WASM as base64 - incompatible with Cloudflare Workers' module-based WASM loading. Satori itself now uses an internal patched version instead of `yoga-wasm-web`, fragmenting the ecosystem.
+
+### 2. Brittle HTML Parsing
+
+The HTML parser builds JSON via string concatenation:
+
+```typescript
+// workers-og approach - error-prone
+vdomStr += `{"type":"${element.tagName}", "props":{${attrs}"children": [`;
+```
+
+The code comments even acknowledge: *"very error prone. So it might need more hardening"*. The `sanitizeJSON` function only handles basic escapes, missing edge cases.
+
+### 3. Style Parsing Fails on Complex CSS
+
+workers-og uses regex to parse CSS: `;(?![^(]*\))`. This fails on:
+- Nested parentheses: `calc(100% - (10px + 5px))`
+- Data URIs: `url(data:image/png;base64,...)`
+- Complex CSS with multiple function calls
+
+### 4. No Vite Support
+
+workers-og uses esbuild's copy loader for WASM, which is incompatible with Vite. The library only works with `wrangler dev`, not `vite dev` with `@cloudflare/vite-plugin`.
+
+### 5. Debug Logs in Production
+
+```typescript
+console.log("init RESVG");  // Left in production code
+```
 
 ### How cf-workers-og Solves These
 
-- **Modern WASM**: Uses `@cf-wasm/og` which is actively maintained (Dec 2025) with up-to-date yoga and resvg
-- **No debug logs**: Clean production code
-- **Robust HTML parsing**: Uses [htmlparser2](https://github.com/fb55/htmlparser2) + [style-to-js](https://www.npmjs.com/package/style-to-js) for proper DOM/CSS parsing (works in Workers, unlike browser-based parsers)
-- **Vite compatible**: Works with `@cloudflare/vite-plugin` out of the box
+| Issue | cf-workers-og Solution |
+|-------|----------------------|
+| **Outdated WASM** | Uses `@cf-wasm/og` (actively maintained, Dec 2025) with current yoga and resvg |
+| **Brittle HTML parsing** | Uses [htmlparser2](https://github.com/fb55/htmlparser2) - a battle-tested streaming parser with no browser dependencies |
+| **Style parsing** | Uses [style-to-js](https://www.npmjs.com/package/style-to-js) (1M+ weekly downloads) - handles all CSS edge cases |
+| **No Vite support** | Works with `@cloudflare/vite-plugin` via proper conditional exports for node/workerd |
+| **Debug logs** | Clean production code |
+
+### Design Decisions
+
+**Why wrap @cf-wasm/og instead of building from scratch?**
+
+WASM on Cloudflare Workers is genuinely hard. Workers cannot compile WASM from arbitrary data blobs - you must import as modules. Rather than maintain custom yoga-wasm builds, we wrap `@cf-wasm/og` which already solves Vite + Wrangler compatibility.
+
+**Why htmlparser2 instead of html-react-parser?**
+
+`html-react-parser` uses `html-dom-parser` which detects the environment. Cloudflare Workers is incorrectly detected as a browser, causing it to use `document.implementation.createHTMLDocument` which doesn't exist. `htmlparser2` is a pure streaming parser that works everywhere.
 
 ## API Reference
 
