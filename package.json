@@ -1,6 +1,6 @@
 {
   "name": "cf-workers-og",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "module",
   "description": "Generate Open Graph images on Cloudflare Workers with Vite support",
   "main": "./dist/index.js",
@@ -20,6 +20,58 @@
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
       }
+    },
+    "./node": {
+      "types": "./dist/index.node.d.ts",
+      "import": "./dist/index.node.js"
+    },
+    "./workerd": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./html": {
+      "node": {
+        "types": "./dist/html.node.d.ts",
+        "import": "./dist/html.node.js"
+      },
+      "workerd": {
+        "types": "./dist/html.d.ts",
+        "import": "./dist/html.js"
+      },
+      "default": {
+        "types": "./dist/html.d.ts",
+        "import": "./dist/html.js"
+      }
+    },
+    "./node/html": {
+      "types": "./dist/html.node.d.ts",
+      "import": "./dist/html.node.js"
+    },
+    "./workerd/html": {
+      "types": "./dist/html.d.ts",
+      "import": "./dist/html.js"
+    },
+    "./compat": {
+      "node": {
+        "types": "./dist/compat.node.d.ts",
+        "import": "./dist/compat.node.js"
+      },
+      "workerd": {
+        "types": "./dist/compat.d.ts",
+        "import": "./dist/compat.js"
+      },
+      "default": {
+        "types": "./dist/compat.d.ts",
+        "import": "./dist/compat.js"
+      }
+    },
+    "./node/compat": {
+      "types": "./dist/compat.node.d.ts",
+      "import": "./dist/compat.node.js"
+    },
+    "./workerd/compat": {
+      "types": "./dist/compat.d.ts",
+      "import": "./dist/compat.js"
     }
   },
   "files": [

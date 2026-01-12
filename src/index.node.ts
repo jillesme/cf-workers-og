@@ -9,7 +9,6 @@
 
 // Core exports (using Node.js-compatible imports)
 export { ImageResponse, cache } from "./image-response.node";
-export { parseHtml } from "./html-parser";
 
 // Font utilities (using Node.js-compatible imports)
 export { GoogleFont, CustomFont, loadGoogleFont, createFontConfig } from "./fonts.node";

@@ -114,36 +114,21 @@ describe("ImageResponse", () => {
     });
   });
 
-  describe("HTML string parsing", () => {
-    it("should parse HTML strings automatically", async () => {
-      const response = await ImageResponse.create(
-        '<div style="display: flex;">Test</div>'
-      );
-
-      expect(response).toBeInstanceOf(Response);
-      expect(response.headers.get("Content-Type")).toBe("image/png");
+  describe("HTML string input", () => {
+    it("should throw when HTML strings are provided", async () => {
+      await expect(
+        ImageResponse.create('<div style="display: flex;">Test</div>')
+      ).rejects.toThrow("cf-workers-og: HTML string input requires");
     });
   });
 
-  describe("constructor (backwards compatibility)", () => {
-    it("should work with new constructor syntax", async () => {
+  describe("constructor usage", () => {
+    it("should throw to discourage constructor usage", () => {
       const element = createElement("div", {}, "Test");
-      // Constructor returns a Promise due to workers-og compatibility trick
-      const response = new ImageResponse(element);
 
-      expect(response).toBeInstanceOf(Promise);
-      const resolvedResponse = await response;
-      expect(resolvedResponse).toBeInstanceOf(Response);
-    });
-
-    it("should accept options in constructor", async () => {
-      const element = createElement("div", {}, "Test");
-      const response = await new ImageResponse(element, {
-        width: 600,
-        height: 300,
-      });
-
-      expect(response).toBeInstanceOf(Response);
+      expect(() => new ImageResponse(element)).toThrow(
+        "cf-workers-og: use ImageResponse.create"
+      );
     });
   });
 

@@ -1,13 +1,14 @@
 # cf-workers-og
 
-Generate Open Graph images on Cloudflare Workers with Vite support.
+Generate Open Graph images on Cloudflare Workers with Node.js bindings for local Vite dev.
 
 A thin wrapper around [@cf-wasm/og](https://github.com/fineshopdesign/cf-wasm) that provides:
 
+- Designed for Workers; includes Node.js bindings for local dev
 - Works with both **Vite dev** and **Wrangler dev**
 - Uses modern, maintained WASM dependencies
-- Robust HTML string parsing (using battle-tested libraries)
-- Backwards-compatible API for workers-og users
+- Optional HTML string parsing (using battle-tested libraries)
+- Backwards-compatible entrypoint for workers-og users (via `cf-workers-og/compat`)
 - TypeScript support
 
 ## Installation
@@ -20,7 +21,7 @@ pnpm add cf-workers-og
 
 ## Quick Start
 
-### Basic Usage (JSX)
+### Basic Usage (JSX, recommended)
 
 ```tsx
 import { ImageResponse } from "cf-workers-og";
@@ -86,10 +87,11 @@ export default {
 
 ### HTML String Usage
 
-We added this to be backwards-comatible with workers-og, but prefer JSX. 
+Use HTML parsing only if you need it. For new projects, JSX is the simplest and most reliable.
+HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint. For workers-og constructor compatibility, use `cf-workers-og/compat`.
 
 ```typescript
-import { ImageResponse, parseHtml } from "cf-workers-og";
+import { ImageResponse, parseHtml } from "cf-workers-og/html";
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -120,29 +122,81 @@ export default defineConfig({
 });
 ```
 
+Vite dev runs in Node.js, so this package ships Node bindings that should be picked automatically. If your bundler does not respect export conditions, use explicit paths like `cf-workers-og/node`.
+
+## Which entrypoint should I use?
+
+- `cf-workers-og` (recommended): JSX input only, clean API for new users.
+- `cf-workers-og/html`: adds `parseHtml` and accepts HTML strings in `ImageResponse.create`.
+- `cf-workers-og/compat`: legacy constructor behavior and HTML strings for migrating from workers-og.
+- If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`, `cf-workers-og/workerd`, and their `/html` or `/compat` variants.
+
 ## Why Not workers-og?
 
-The original [workers-og](https://github.com/syedashar1/workers-og) library has several issues:
+The original [workers-og](https://github.com/syedashar1/workers-og) has fundamental issues that make it unsuitable for production use.
 
-| Issue                     | Details                                                                     |
-| ------------------------- | --------------------------------------------------------------------------- |
-| **Outdated WASM**         | Uses yoga-wasm-web 0.3.3 (unmaintained since 2023) and resvg-wasm 2.4.0     |
-| **Console logs**          | Debug logs left in production code (`og.ts:16,18,20`)                       |
-| **Brittle HTML parsing**  | Manual JSON string concatenation (`vdomStr +=`) - error-prone               |
-| **No Vite support**       | Uses esbuild copy loader, incompatible with Vite's WASM handling            |
+### 1. Outdated WASM Dependencies
+
+workers-og uses `yoga-wasm-web@0.3.3` which has been **unmaintained since 2023**. The Yoga project moved to Yoga 3.0 with a `SINGLE_FILE=1` compilation that inlines WASM as base64 - incompatible with Cloudflare Workers' module-based WASM loading. Satori itself now uses an internal patched version instead of `yoga-wasm-web`, fragmenting the ecosystem.
+
+### 2. Brittle HTML Parsing
+
+The HTML parser builds JSON via string concatenation:
+
+```typescript
+// workers-og approach - error-prone
+vdomStr += `{"type":"${element.tagName}", "props":{${attrs}"children": [`;
+```
+
+The code comments even acknowledge: *"very error prone. So it might need more hardening"*. The `sanitizeJSON` function only handles basic escapes, missing edge cases.
+
+### 3. Style Parsing Fails on Complex CSS
+
+workers-og uses regex to parse CSS: `;(?![^(]*\))`. This fails on:
+- Nested parentheses: `calc(100% - (10px + 5px))`
+- Data URIs: `url(data:image/png;base64,...)`
+- Complex CSS with multiple function calls
+
+### 4. No Vite Support
+
+workers-og uses esbuild's copy loader for WASM, which is incompatible with Vite. The library only works with `wrangler dev`, not `vite dev` with `@cloudflare/vite-plugin`.
+
+### 5. Debug Logs in Production
+
+```typescript
+console.log("init RESVG");  // Left in production code
+```
 
 ### How cf-workers-og Solves These
 
-- **Modern WASM**: Uses `@cf-wasm/og` which is actively maintained (Dec 2025) with up-to-date yoga and resvg
-- **No debug logs**: Clean production code
-- **Robust HTML parsing**: Uses [htmlparser2](https://github.com/fb55/htmlparser2) + [style-to-js](https://www.npmjs.com/package/style-to-js) for proper DOM/CSS parsing (works in Workers, unlike browser-based parsers)
-- **Vite compatible**: Works with `@cloudflare/vite-plugin` out of the box
+| Issue | cf-workers-og Solution |
+|-------|----------------------|
+| **Outdated WASM** | Uses `@cf-wasm/og` (actively maintained, Dec 2025) with current yoga and resvg |
+| **Brittle HTML parsing** | Uses [htmlparser2](https://github.com/fb55/htmlparser2) - a battle-tested streaming parser with no browser dependencies |
+| **Style parsing** | Uses [style-to-js](https://www.npmjs.com/package/style-to-js) (1M+ weekly downloads) - handles all CSS edge cases |
+| **No Vite support** | Works with `@cloudflare/vite-plugin` via proper conditional exports for node/workerd |
+| **Debug logs** | Clean production code |
+
+### Design Decisions
+
+**Why wrap @cf-wasm/og instead of building from scratch?**
+
+WASM on Cloudflare Workers is genuinely hard. Workers cannot compile WASM from arbitrary data blobs - you must import as modules. Rather than maintain custom yoga-wasm builds, we wrap `@cf-wasm/og` which already solves Vite + Wrangler compatibility.
+
+**Why htmlparser2 instead of html-react-parser?**
+
+`html-react-parser` uses `html-dom-parser` which detects the environment. Cloudflare Workers is incorrectly detected as a browser, causing it to use `document.implementation.createHTMLDocument` which doesn't exist. `htmlparser2` is a pure streaming parser that works everywhere.
 
 ## API Reference
+
+### Entry points
+
+Use `cf-workers-og` for Workers with JSX input, `cf-workers-og/html` for HTML strings, and `cf-workers-og/compat` only when migrating from workers-og. If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or `cf-workers-og/workerd` (and the `/html` or `/compat` variants).
 
 ### `ImageResponse.create(element, options)`
 
 Generate an OG image Response.
+Main entrypoint expects a React element; `cf-workers-og/html` also accepts HTML strings.
 
 ```typescript
 const response = await ImageResponse.create(element, {
@@ -160,7 +214,7 @@ const response = await ImageResponse.create(element, {
 
 ### `parseHtml(html)`
 
-Parse an HTML string into React elements for Satori.
+Parse an HTML string into React elements for Satori. Exported from `cf-workers-og/html` and `cf-workers-og/compat`.
 
 ```typescript
 const element = parseHtml('<div style="display: flex;">Hello</div>');
@@ -203,9 +257,11 @@ The `GoogleFont` class caches font files using Cloudflare's Cache API to avoid r
 
 ## Migrating from workers-og
 
+Note that cache is only used if you use GoogleFonts. Otherwise it is a drop-in replacement.
+
 ```diff
 - import { ImageResponse } from 'workers-og';
-+ import { ImageResponse, cache } from 'cf-workers-og';
++ import { ImageResponse, cache } from 'cf-workers-og/compat';
 
 export default {
   async fetch(request, env, ctx) {
@@ -220,7 +276,7 @@ For HTML string users:
 
 ```diff
 - return new ImageResponse(htmlString, options);
-+ import { parseHtml } from 'cf-workers-og';
++ import { ImageResponse, parseHtml } from 'cf-workers-og/html';
 + return ImageResponse.create(parseHtml(htmlString), options);
 ```
 
@@ -235,70 +291,6 @@ This package is a **thin wrapper** (6 KB) around `@cf-wasm/og`. The heavy liftin
 | `htmlparser2` | ~42 KB | HTML parsing (pure JS) |
 
 The WASM files are installed as transitive dependencies - they're not bundled in this package.
-
-## Local Development
-
-To test changes locally before publishing:
-
-```bash
-# In cf-workers-og directory
-pnpm build
-pnpm link --global
-
-# In your Astro/other project
-pnpm link --global cf-workers-og
-```
-
-Then in your Astro project's API route:
-
-```tsx
-// src/pages/og/[...slug].ts (Astro on Cloudflare)
-import type { APIRoute } from "astro";
-import { ImageResponse } from "cf-workers-og";
-
-export const GET: APIRoute = async ({ params }) => {
-  // No cache.setExecutionContext needed - using default font
-  return ImageResponse.create(
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#000", color: "#fff", width: "100%", height: "100%" }}>
-      <h1 style={{ fontSize: 60 }}>Hello {params.slug}</h1>
-    </div>,
-    { width: 1200, height: 630 }
-  );
-};
-```
-
-If using Google Fonts:
-
-```tsx
-import { ImageResponse, GoogleFont, cache } from "cf-workers-og";
-
-export const GET: APIRoute = async ({ params, locals }) => {
-  // Required for GoogleFont caching
-  const ctx = (locals as any).runtime?.ctx;
-  if (ctx) cache.setExecutionContext(ctx);
-
-  return ImageResponse.create(
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "#000", color: "#fff", width: "100%", height: "100%" }}>
-      <h1 style={{ fontSize: 60, fontFamily: "Inter" }}>Hello {params.slug}</h1>
-    </div>,
-    {
-      width: 1200,
-      height: 630,
-      fonts: [new GoogleFont("Inter", { weight: 700 })],
-    }
-  );
-};
-```
-
-To unlink after testing:
-
-```bash
-# In your Astro project
-pnpm unlink cf-workers-og
-
-# In cf-workers-og directory
-pnpm unlink --global
-```
 
 ## License
 
