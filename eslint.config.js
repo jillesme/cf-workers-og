@@ -14,6 +14,9 @@ export default tseslint.config(
           allowDefaultProject: [
             "src/__tests__/html-parser.test.ts",
             "src/__tests__/image-response.test.ts",
+            "src/__tests__/image-response.compat.test.ts",
+            "src/__tests__/image-response.html.test.ts",
+            "src/__tests__/image-response.node.test.ts",
           ],
         },
         tsconfigRootDir: import.meta.dirname,

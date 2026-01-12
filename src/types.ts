@@ -20,7 +20,7 @@ export type FontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
 export type FontStyle = "normal" | "italic";
 
 /**
- * Font configuration for custom fonts
+ * Font configuration for manually loaded fonts
  */
 export interface FontConfig {
   name: string;
@@ -28,6 +28,21 @@ export interface FontConfig {
   weight?: FontWeight;
   style?: FontStyle;
 }
+
+/**
+ * Font configuration with async data loading (used by GoogleFont/CustomFont classes)
+ */
+export interface AsyncFontConfig {
+  name: string;
+  data: ArrayBuffer | Promise<ArrayBuffer>;
+  weight?: FontWeight;
+  style?: FontStyle;
+}
+
+/**
+ * Union type for all supported font configurations
+ */
+export type FontInput = FontConfig | AsyncFontConfig;
 
 /**
  * Options for ImageResponse
@@ -52,9 +67,10 @@ export interface ImageResponseOptions {
   format?: "png" | "svg";
 
   /**
-   * Fonts to use for rendering text
+   * Fonts to use for rendering text.
+   * Accepts FontConfig (manual loading) or GoogleFont/CustomFont classes.
    */
-  fonts?: FontConfig[];
+  fonts?: FontInput[];
 
   /**
    * Emoji provider for rendering emoji

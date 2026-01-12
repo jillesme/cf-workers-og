@@ -30,7 +30,6 @@
 
 // Core exports
 export { ImageResponse, cache } from "./image-response";
-export { parseHtml } from "./html-parser";
 
 // Font utilities
 export { GoogleFont, CustomFont, loadGoogleFont, createFontConfig } from "./fonts";
