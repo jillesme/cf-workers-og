@@ -7,7 +7,7 @@
  * Run with Wrangler: pnpm dev:wrangler
  */
 
-import { ImageResponse, GoogleFont, cache, parseHtml } from "cf-workers-og";
+import { ImageResponse, GoogleFont, cache, parseHtml } from "cf-workers-og/html";
 
 export interface Env {
   // Add your bindings here

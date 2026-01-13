@@ -1,16 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createElement } from "react";
 
-vi.mock("@cf-wasm/og/workerd", () => ({
-  ImageResponse: {
-    async: vi.fn().mockResolvedValue({
-      body: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
-      headers: new Headers(),
-    }),
-  },
-  cache: {
-    setExecutionContext: vi.fn(),
-  },
+vi.mock("../runtime/satori.workerd", () => ({
+  renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
 }));
 
 import { ImageResponse, cache } from "../compat";
@@ -26,7 +18,7 @@ describe("ImageResponse (compat)", () => {
     );
 
     expect(response).toBeInstanceOf(Response);
-    expect(response.headers.get("Content-Type")).toBe("image/png");
+    expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
   });
 
   it("should support constructor compatibility", async () => {
@@ -38,7 +30,7 @@ describe("ImageResponse (compat)", () => {
     expect(resolved).toBeInstanceOf(Response);
   });
 
-  it("should export cache from @cf-wasm/og", () => {
+  it("should export cache utilities", () => {
     expect(cache).toBeDefined();
     expect(cache.setExecutionContext).toBeDefined();
   });

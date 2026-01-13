@@ -4,15 +4,16 @@
  * Includes HTML string parsing support without legacy constructor behavior.
  */
 
-import { ImageResponse as CfImageResponse } from "@cf-wasm/og/workerd";
 import type { ReactNode } from "react";
 import { createImageResponseClass } from "./core/image-response";
 import { parseHtml } from "./html-parser";
+import { renderSvg } from "./runtime/satori.workerd";
+import { cache } from "./cache";
 
-export { cache } from "@cf-wasm/og/workerd";
+export { cache };
 
 export const ImageResponse = createImageResponseClass<ReactNode | string>({
-  cfImageResponse: CfImageResponse,
+  renderSvg,
   parseHtml,
 });
 

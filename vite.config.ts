@@ -21,13 +21,14 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
-        "@cf-wasm/og",
-        "@cf-wasm/og/workerd",
-        "@cf-wasm/og/node",
         "htmlparser2",
         "style-to-js",
         "react",
         "react/jsx-runtime",
+        "satori",
+        "satori/standalone",
+        "node:fs/promises",
+        /\.wasm$/,
       ],
     },
     minify: false,

@@ -24,7 +24,7 @@ export type FontStyle = "normal" | "italic";
  */
 export interface FontConfig {
   name: string;
-  data: ArrayBuffer;
+  data: ArrayBuffer | ArrayBufferView;
   weight?: FontWeight;
   style?: FontStyle;
 }
@@ -34,7 +34,10 @@ export interface FontConfig {
  */
 export interface AsyncFontConfig {
   name: string;
-  data: ArrayBuffer | Promise<ArrayBuffer>;
+  data:
+    | ArrayBuffer
+    | ArrayBufferView
+    | Promise<ArrayBuffer | ArrayBufferView>;
   weight?: FontWeight;
   style?: FontStyle;
 }
@@ -62,7 +65,7 @@ export interface ImageResponseOptions {
 
   /**
    * Output format
-   * @default "png"
+   * @default "svg"
    */
   format?: "png" | "svg";
 

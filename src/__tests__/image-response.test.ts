@@ -1,17 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createElement } from "react";
 
-// Mock @cf-wasm/og before importing ImageResponse
-vi.mock("@cf-wasm/og/workerd", () => ({
-  ImageResponse: {
-    async: vi.fn().mockResolvedValue({
-      body: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]), // PNG magic bytes
-      headers: new Headers(),
-    }),
-  },
-  cache: {
-    setExecutionContext: vi.fn(),
-  },
+vi.mock("../runtime/satori.workerd", () => ({
+  renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
 }));
 
 import { ImageResponse, cache } from "../image-response";
@@ -22,12 +13,12 @@ describe("ImageResponse", () => {
   });
 
   describe("ImageResponse.create()", () => {
-    it("should create a Response with PNG content type by default", async () => {
+    it("should create a Response with SVG content type by default", async () => {
       const element = createElement("div", {}, "Test");
       const response = await ImageResponse.create(element);
 
       expect(response).toBeInstanceOf(Response);
-      expect(response.headers.get("Content-Type")).toBe("image/png");
+      expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
     });
 
     it("should create SVG response when format is svg", async () => {
@@ -35,6 +26,14 @@ describe("ImageResponse", () => {
       const response = await ImageResponse.create(element, { format: "svg" });
 
       expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
+    });
+
+    it("should throw when format is png", async () => {
+      const element = createElement("div", {}, "Test");
+
+      await expect(
+        ImageResponse.create(element, { format: "png" })
+      ).rejects.toThrow("PNG output is not supported yet");
     });
 
     it("should set cache headers by default", async () => {
@@ -63,36 +62,26 @@ describe("ImageResponse", () => {
     });
 
     it("should use default width and height", async () => {
-      const { ImageResponse: MockedCfImageResponse } = await import(
-        "@cf-wasm/og/workerd"
-      );
+      const { renderSvg } = await import("../runtime/satori.workerd");
       const element = createElement("div", {}, "Test");
 
       await ImageResponse.create(element);
 
-      expect(MockedCfImageResponse.async).toHaveBeenCalledWith(
+      expect(renderSvg).toHaveBeenCalledWith(
         element,
-        expect.objectContaining({
-          width: 1200,
-          height: 630,
-        })
+        expect.objectContaining({ width: 1200, height: 630 })
       );
     });
 
     it("should accept custom width and height", async () => {
-      const { ImageResponse: MockedCfImageResponse } = await import(
-        "@cf-wasm/og/workerd"
-      );
+      const { renderSvg } = await import("../runtime/satori.workerd");
       const element = createElement("div", {}, "Test");
 
       await ImageResponse.create(element, { width: 800, height: 400 });
 
-      expect(MockedCfImageResponse.async).toHaveBeenCalledWith(
+      expect(renderSvg).toHaveBeenCalledWith(
         element,
-        expect.objectContaining({
-          width: 800,
-          height: 400,
-        })
+        expect.objectContaining({ width: 800, height: 400 })
       );
     });
 
@@ -133,7 +122,7 @@ describe("ImageResponse", () => {
   });
 
   describe("cache export", () => {
-    it("should export cache from @cf-wasm/og", () => {
+    it("should export cache utilities", () => {
       expect(cache).toBeDefined();
       expect(cache.setExecutionContext).toBeDefined();
     });

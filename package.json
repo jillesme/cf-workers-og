@@ -78,7 +78,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly",
+    "build": "vite build && node scripts/copy-wasm.mjs && tsc --emitDeclarationOnly",
     "dev": "vite build --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -91,8 +91,8 @@
     "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build"
   },
   "dependencies": {
-    "@cf-wasm/og": "^0.3.0",
     "htmlparser2": "^10.0.0",
+    "satori": "file:./satori-fork",
     "style-to-js": "^1.1.21"
   },
   "devDependencies": {

@@ -1,15 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@cf-wasm/og/workerd", () => ({
-  ImageResponse: {
-    async: vi.fn().mockResolvedValue({
-      body: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
-      headers: new Headers(),
-    }),
-  },
-  cache: {
-    setExecutionContext: vi.fn(),
-  },
+vi.mock("../runtime/satori.workerd", () => ({
+  renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
 }));
 
 import { ImageResponse } from "../html";
@@ -25,7 +17,7 @@ describe("ImageResponse (html)", () => {
     );
 
     expect(response).toBeInstanceOf(Response);
-    expect(response.headers.get("Content-Type")).toBe("image/png");
+    expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
   });
 
   it("should discourage constructor usage", () => {
