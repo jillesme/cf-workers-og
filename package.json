@@ -116,6 +116,7 @@
   "engines": {
     "node": ">=18"
   },
+  "packageManager": "pnpm@10.25.0",
   "pnpm": {
     "patchedDependencies": {
       "satori@0.18.3": "patches/satori@0.18.3.patch",
