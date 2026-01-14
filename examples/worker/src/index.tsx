@@ -7,7 +7,7 @@
  * Run with Wrangler: pnpm dev:wrangler
  */
 
-import { ImageResponse, GoogleFont, cache, parseHtml } from "cf-workers-og/html";
+import { ImageResponse, GoogleFont, cache } from "cf-workers-og/html";
 
 export interface Env {
   // Add your bindings here
@@ -81,7 +81,7 @@ export default {
         </div>
       `;
 
-      return ImageResponse.create(parseHtml(html), {
+      return ImageResponse.create(html, {
         width: 1200,
         height: 630,
         fonts: [new GoogleFont("Inter", { weight: 700 })],

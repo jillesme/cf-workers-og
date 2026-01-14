@@ -65,7 +65,7 @@ export interface ImageResponseOptions {
 
   /**
    * Output format
-   * @default "svg"
+   * @default "png"
    */
   format?: "png" | "svg";
 

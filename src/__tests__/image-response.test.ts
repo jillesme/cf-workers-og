@@ -14,12 +14,12 @@ describe("ImageResponse", () => {
   });
 
   describe("ImageResponse.create()", () => {
-    it("should create a Response with SVG content type by default", async () => {
+    it("should create a Response with PNG content type by default", async () => {
       const element = createElement("div", {}, "Test");
       const response = await ImageResponse.create(element);
 
       expect(response).toBeInstanceOf(Response);
-      expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
+      expect(response.headers.get("Content-Type")).toBe("image/png");
     });
 
     it("should create SVG response when format is svg", async () => {
@@ -68,12 +68,12 @@ describe("ImageResponse", () => {
     });
 
     it("should use default width and height", async () => {
-      const { renderSvg } = await import("../runtime/satori.workerd");
+      const { renderPng } = await import("../runtime/satori.workerd");
       const element = createElement("div", {}, "Test");
 
       await ImageResponse.create(element);
 
-      expect(renderSvg).toHaveBeenCalledWith(
+      expect(renderPng).toHaveBeenCalledWith(
         element,
         expect.objectContaining({ width: 1200, height: 630 })
       );
@@ -114,16 +114,6 @@ describe("ImageResponse", () => {
       await expect(
         ImageResponse.create('<div style="display: flex;">Test</div>')
       ).rejects.toThrow("cf-workers-og: HTML string input requires");
-    });
-  });
-
-  describe("constructor usage", () => {
-    it("should throw to discourage constructor usage", () => {
-      const element = createElement("div", {}, "Test");
-
-      expect(() => new ImageResponse(element)).toThrow(
-        "cf-workers-og: use ImageResponse.create"
-      );
     });
   });
 

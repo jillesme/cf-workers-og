@@ -13,21 +13,21 @@ describe("ImageResponse (node)", () => {
     vi.clearAllMocks();
   });
 
-  it("should create a Response with SVG content type by default", async () => {
+  it("should create a Response with PNG content type by default", async () => {
     const element = createElement("div", {}, "Test");
     const response = await ImageResponse.create(element);
 
     expect(response).toBeInstanceOf(Response);
-    expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
+    expect(response.headers.get("Content-Type")).toBe("image/png");
   });
 
   it("should use default width and height", async () => {
-    const { renderSvg } = await import("../runtime/satori.node");
+    const { renderPng } = await import("../runtime/satori.node");
     const element = createElement("div", {}, "Test");
 
     await ImageResponse.create(element);
 
-    expect(renderSvg).toHaveBeenCalledWith(
+    expect(renderPng).toHaveBeenCalledWith(
       element,
       expect.objectContaining({ width: 1200, height: 630 })
     );

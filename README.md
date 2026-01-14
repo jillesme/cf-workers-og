@@ -9,7 +9,6 @@ An SVG-focused wrapper around [Satori](https://github.com/vercel/satori) + Yoga 
 - Uses modern, maintained WASM dependencies
 - SVG and PNG output (PNG via resvg WASM)
 - Optional HTML string parsing (using battle-tested libraries)
-- Backwards-compatible entrypoint for workers-og users (via `cf-workers-og/compat`)
 - TypeScript support
 
 ## Installation
@@ -89,10 +88,10 @@ export default {
 ### HTML String Usage
 
 Use HTML parsing only if you need it. For new projects, JSX is the simplest and most reliable.
-HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint. For workers-og constructor compatibility, use `cf-workers-og/compat`.
+HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint.
 
 ```typescript
-import { ImageResponse, parseHtml } from "cf-workers-og/html";
+import { ImageResponse } from "cf-workers-og/html";
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -102,7 +101,7 @@ export default {
       </div>
     `;
 
-    return ImageResponse.create(parseHtml(html), {
+    return ImageResponse.create(html, {
       width: 1200,
       height: 630,
     });
@@ -129,8 +128,8 @@ Vite dev runs in Node.js, so this package ships Node bindings that should be pic
 
 - `cf-workers-og` (recommended): JSX input only, clean API for new users.
 - `cf-workers-og/html`: adds `parseHtml` and accepts HTML strings in `ImageResponse.create`.
-- `cf-workers-og/compat`: legacy constructor behavior and HTML strings for migrating from workers-og.
-- If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`, `cf-workers-og/workerd`, and their `/html` or `/compat` variants.
+- If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`,
+  `cf-workers-og/workerd`, and their `/html` variants.
 
 ## Why Not workers-og?
 
@@ -192,7 +191,9 @@ WASM on Cloudflare Workers is genuinely hard. Workers cannot compile WASM from a
 
 ### Entry points
 
-Use `cf-workers-og` for Workers with JSX input, `cf-workers-og/html` for HTML strings, and `cf-workers-og/compat` only when migrating from workers-og. If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or `cf-workers-og/workerd` (and the `/html` or `/compat` variants).
+Use `cf-workers-og` for Workers with JSX input and `cf-workers-og/html` for HTML strings.
+If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or
+`cf-workers-og/workerd` (and the `/html` variants).
 
 ### `ImageResponse.create(element, options)`
 
@@ -203,7 +204,7 @@ Main entrypoint expects a React element; `cf-workers-og/html` also accepts HTML 
 const response = await ImageResponse.create(element, {
   width: 1200, // Default: 1200
   height: 630, // Default: 630
-  format: "svg", // 'png' | 'svg', Default: 'svg'
+  format: "png", // 'png' | 'svg', Default: 'png'
   fonts: [], // Font configurations
   emoji: "twemoji", // Emoji provider
   debug: false, // Disable caching for debugging
@@ -215,7 +216,7 @@ const response = await ImageResponse.create(element, {
 
 ### `parseHtml(html)`
 
-Parse an HTML string into React elements for Satori. Exported from `cf-workers-og/html` and `cf-workers-og/compat`.
+Parse an HTML string into React elements for Satori. Exported from `cf-workers-og/html`.
 
 ```typescript
 const element = parseHtml('<div style="display: flex;">Hello</div>');
@@ -262,13 +263,13 @@ Note that cache is only used if you use GoogleFonts. Otherwise it is a drop-in r
 
 ```diff
 - import { ImageResponse } from 'workers-og';
-+ import { ImageResponse, cache } from 'cf-workers-og/compat';
++ import { ImageResponse, cache } from 'cf-workers-og';
 
 export default {
   async fetch(request, env, ctx) {
 +   cache.setExecutionContext(ctx);
 
-    return new ImageResponse(element, options);
+    return ImageResponse.create(element, options);
   }
 };
 ```
@@ -277,8 +278,8 @@ For HTML string users:
 
 ```diff
 - return new ImageResponse(htmlString, options);
-+ import { ImageResponse, parseHtml } from 'cf-workers-og/html';
-+ return ImageResponse.create(parseHtml(htmlString), options);
++ import { ImageResponse } from 'cf-workers-og/html';
++ return ImageResponse.create(htmlString, options);
 ```
 
 ## Architecture

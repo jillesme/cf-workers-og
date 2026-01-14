@@ -131,3 +131,12 @@ Validation notes
 - `WebAssembly.compile` succeeds on `src/wasm/resvg.wasm` after vendoring.
 - `dist/wasm/` contains both `resvg.wasm` (~2.4MB) and `yoga.wasm` (~70KB).
 - For local validation: `pnpm dlx wrangler dev` and hit `/png`.
+
+ImageResponse API cleanup
+- Removed Response subclassing and the super() constructor hack.
+- ImageResponse is now a simple class with a static `create(...)` method; the
+  constructor guard was removed (constructor usage is still not supported).
+- Removed `compat` entrypoints and exports; the only entrypoints are
+  `cf-workers-og` and `cf-workers-og/html`.
+- Default output format changed to PNG; SVG is opt-in via `format: "svg"`.
+- `cf-workers-og/html` accepts raw HTML strings directly in `ImageResponse.create`.

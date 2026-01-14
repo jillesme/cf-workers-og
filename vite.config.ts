@@ -14,8 +14,6 @@ export default defineConfig({
         "index.node": "./src/index.node.ts",
         html: "./src/html.ts",
         "html.node": "./src/html.node.ts",
-        compat: "./src/compat.ts",
-        "compat.node": "./src/compat.node.ts",
       },
       formats: ["es"],
     },

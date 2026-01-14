@@ -18,12 +18,7 @@ describe("ImageResponse (html)", () => {
     );
 
     expect(response).toBeInstanceOf(Response);
-    expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
+    expect(response.headers.get("Content-Type")).toBe("image/png");
   });
 
-  it("should discourage constructor usage", () => {
-    expect(() => new ImageResponse("<div>HTML</div>")).toThrow(
-      "cf-workers-og: use ImageResponse.create"
-    );
-  });
 });
