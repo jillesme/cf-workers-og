@@ -6,10 +6,10 @@ settings:
 
 patchedDependencies:
   satori@0.18.3:
-    hash: 61035467a35d7a734d0dfc395f291fd9ee6545900cac91a22499ce830c1946a2
+    hash: e62d7a1ff683193ffbaa31c0648d870164e20a4fa1c68be66052fc1ef4a055a6
     path: patches/satori@0.18.3.patch
   yoga-layout@3.2.1:
-    hash: 46a427a88f08b0b95408d6fab3263a25b87776d9f9f5a40e08296dc695f320e8
+    hash: ffb59365e4504bb17a2e7c4afe23078b8dff357659a8b9244c43deecc0b74979
     path: patches/yoga-layout@3.2.1.patch
 
 importers:
@@ -27,7 +27,7 @@ importers:
         version: 19.2.3
       satori:
         specifier: 0.18.3
-        version: 0.18.3(patch_hash=61035467a35d7a734d0dfc395f291fd9ee6545900cac91a22499ce830c1946a2)
+        version: 0.18.3(patch_hash=e62d7a1ff683193ffbaa31c0648d870164e20a4fa1c68be66052fc1ef4a055a6)
       style-to-js:
         specifier: ^1.1.21
         version: 1.1.21
@@ -3044,7 +3044,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.55.1
       fsevents: 2.3.3
 
-  satori@0.18.3(patch_hash=61035467a35d7a734d0dfc395f291fd9ee6545900cac91a22499ce830c1946a2):
+  satori@0.18.3(patch_hash=e62d7a1ff683193ffbaa31c0648d870164e20a4fa1c68be66052fc1ef4a055a6):
     dependencies:
       '@shuding/opentype.js': 1.4.0-beta.0
       css-background-parser: 0.1.0
@@ -3056,7 +3056,7 @@ snapshots:
       linebreak: 1.1.0
       parse-css-color: 0.2.1
       postcss-value-parser: 4.2.0
-      yoga-layout: 3.2.1(patch_hash=46a427a88f08b0b95408d6fab3263a25b87776d9f9f5a40e08296dc695f320e8)
+      yoga-layout: 3.2.1(patch_hash=ffb59365e4504bb17a2e7c4afe23078b8dff357659a8b9244c43deecc0b74979)
 
   semver@7.5.4:
     dependencies:
@@ -3305,4 +3305,4 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  yoga-layout@3.2.1(patch_hash=46a427a88f08b0b95408d6fab3263a25b87776d9f9f5a40e08296dc695f320e8): {}
+  yoga-layout@3.2.1(patch_hash=ffb59365e4504bb17a2e7c4afe23078b8dff357659a8b9244c43deecc0b74979): {}
