@@ -72,6 +72,7 @@ export interface ImageResponseOptions {
   /**
    * Fonts to use for rendering text.
    * Accepts FontConfig (manual loading) or GoogleFont/CustomFont classes.
+   * If omitted, a bundled Roboto Regular font is used by default.
    */
   fonts?: FontInput[];
 

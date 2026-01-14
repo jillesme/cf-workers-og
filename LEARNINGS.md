@@ -140,3 +140,5 @@ ImageResponse API cleanup
   `cf-workers-og` and `cf-workers-og/html`.
 - Default output format changed to PNG; SVG is opt-in via `format: "svg"`.
 - `cf-workers-og/html` accepts raw HTML strings directly in `ImageResponse.create`.
+- Added a bundled Roboto Regular font (base64 in `src/fonts/default-font.ts`)
+  so layouts work even when users pass no fonts.

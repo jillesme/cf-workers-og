@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 import type { FontInput, ImageResponseOptions } from "../types";
 import type { Font, SatoriOptions } from "satori/standalone";
+import {
+  DEFAULT_FONT_NAME,
+  DEFAULT_FONT_STYLE,
+  DEFAULT_FONT_WEIGHT,
+  getDefaultFontData,
+} from "../fonts/default-font";
 
 type ParseHtml = (html: string) => ReactNode;
 
@@ -123,6 +129,16 @@ function buildResponseHeaders(
 
 async function resolveFonts(fonts: FontInput[]): Promise<Font[]> {
   const resolvedFonts: Font[] = [];
+
+  if (fonts.length === 0) {
+    resolvedFonts.push({
+      name: DEFAULT_FONT_NAME,
+      data: getDefaultFontData(),
+      weight: DEFAULT_FONT_WEIGHT,
+      style: DEFAULT_FONT_STYLE,
+    });
+    return resolvedFonts;
+  }
 
   for (const font of fonts) {
     const data = await Promise.resolve(font.data);

@@ -51,6 +51,8 @@ export default {
 
 ### With Google Fonts
 
+Fonts are optional; if you don’t pass any, the bundled Roboto Regular is used.
+
 ```tsx
 import { ImageResponse, GoogleFont, cache } from "cf-workers-og";
 
@@ -205,7 +207,7 @@ const response = await ImageResponse.create(element, {
   width: 1200, // Default: 1200
   height: 630, // Default: 630
   format: "png", // 'png' | 'svg', Default: 'png'
-  fonts: [], // Font configurations
+  fonts: [], // Font configurations (defaults to bundled Roboto Regular)
   emoji: "twemoji", // Emoji provider
   debug: false, // Disable caching for debugging
   headers: {}, // Additional response headers
