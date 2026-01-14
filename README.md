@@ -2,17 +2,19 @@
 
 Generate Open Graph images on Cloudflare Workers. Latest Satori, proper WASM, works everywhere.
 
-## Why this package
+## Comparison
 
-| Feature          | cf-workers-og                                              |
-| ---------------- | ---------------------------------------------------------- |
-| Satori           | 0.18.3 (latest)                                            |
-| Yoga layout      | yoga-layout 3.2.1 (not the abandoned yoga-wasm-web)        |
-| WASM loading     | Module imports (Workers-safe, no runtime byte compilation) |
-| HTML/CSS parsing | htmlparser2 + style-to-js (not regex)                      |
-| Output formats   | PNG default, SVG optional                                  |
-| Fonts            | Bundled Roboto fallback + Google Fonts support             |
-| Dev environments | Vite dev + Wrangler dev                                    |
+|                       |     cf-workers-og     |      workers-og      |     @cf-wasm/og     |
+| --------------------- | :-------------------: | :------------------: | :-----------------: |
+| Satori                |      **0.18.3**       |        0.15.2        |       0.15.2        |
+| Yoga                  | **yoga-layout 3.2.1** | yoga-wasm-web 0.3.3  | yoga-wasm-web 0.3.3 |
+| HTML parsing          |      htmlparser2      | HTMLRewriter + regex |     htmlparser2     |
+| PNG output            |           ✓           |          ✗           |          ✓          |
+| Bundled fallback font |           ✓           |          ✗           |          ✓          |
+| Vite support          |           ✓           |          ✗           |          ✓          |
+| SemVer stable         |           ✓           |          -           |          ✗          |
+
+`yoga-wasm-web` is unmaintained and incompatible with workerd's WASM restrictions. `yoga-layout` is the official Yoga package.
 
 ## Installation
 
