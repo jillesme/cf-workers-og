@@ -9,7 +9,6 @@ Generate Open Graph images on Cloudflare Workers. Latest Satori, proper WASM, wo
 | Satori                |      **0.18.3**       |        0.15.2        |       0.15.2        |
 | Yoga                  | **yoga-layout 3.2.1** | yoga-wasm-web 0.3.3  | yoga-wasm-web 0.3.3 |
 | HTML parsing          |      htmlparser2      | HTMLRewriter + regex |     htmlparser2     |
-| PNG output            |           ✓           |          ✗           |          ✓          |
 | Bundled fallback font |           ✓           |          ✗           |          ✓          |
 | Vite support          |           ✓           |          ✗           |          ✓          |
 | SemVer stable         |           ✓           |          -           |          ✗          |
