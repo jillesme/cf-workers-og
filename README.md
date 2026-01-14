@@ -143,6 +143,29 @@ Vite dev runs in Node.js, so this package ships Node bindings that should be pic
 - If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`,
   `cf-workers-og/workerd`, and their `/html` variants.
 
+## How cf-workers-og works (and why it is reliable)
+
+This package is intentionally small, but the pipeline is carefully tuned for the Workers runtime:
+
+- **Inputs**: You can pass JSX directly, or (via `cf-workers-og/html`) supply a raw HTML string.
+  The HTML entrypoint uses `htmlparser2` + `style-to-js` to turn HTML into React nodes that
+  Satori understands.
+- **Layout**: Satori performs layout with Yoga WASM. In Workers, raw-byte compilation is
+  disallowed, so Yoga is imported as a WebAssembly module and initialized once. The loader is
+  patched to accept `WebAssembly.Module`/`WebAssembly.Instance`, which is the only safe path
+  in workerd.
+- **Rendering**: Satori outputs SVG. For PNG output, the SVG is rendered by `@resvg/resvg-wasm`,
+  again using a precompiled WASM module so there is no runtime compilation.
+- **Assets**: WASM binaries are vendored and copied into `dist/wasm`, so they can be loaded
+  without network access at runtime.
+- **Fonts**: A bundled Roboto Regular fallback prevents layout failure when no fonts are
+  provided. If you use `GoogleFont`, the Cloudflare Cache API is used to avoid re-fetching
+  (and requires `cache.setExecutionContext(ctx)`).
+
+The result is a Workers-first pipeline that runs in both **Vite dev** (Node) and **Wrangler dev**
+workerd with consistent behavior. We do not claim it is the only solution, but it is a practical
+and well-scoped one that matches Workers' constraints without sacrificing output quality.
+
 ## Why Not workers-og?
 
 The original [workers-og](https://github.com/syedashar1/workers-og) has fundamental issues that make it unsuitable for production use.
