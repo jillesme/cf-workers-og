@@ -91,6 +91,7 @@
     "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build"
   },
   "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "htmlparser2": "^10.0.0",
     "satori": "file:./satori-fork",
     "style-to-js": "^1.1.21"

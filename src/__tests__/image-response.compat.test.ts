@@ -3,6 +3,7 @@ import { createElement } from "react";
 
 vi.mock("../runtime/satori.workerd", () => ({
   renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
+  renderPng: vi.fn().mockResolvedValue(new Uint8Array([1])),
 }));
 
 import { ImageResponse, cache } from "../compat";

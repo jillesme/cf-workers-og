@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 
-const yogaUrl = new URL("../wasm/yoga.wasm", import.meta.url);
+const yogaUrl = new URL(
+  /* @vite-ignore */ "./wasm/yoga.wasm",
+  import.meta.url
+);
 
 function toArrayBuffer(view: ArrayBufferView): ArrayBuffer {
   const copy = new Uint8Array(view.byteLength);

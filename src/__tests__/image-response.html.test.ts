@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("../runtime/satori.workerd", () => ({
   renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
+  renderPng: vi.fn().mockResolvedValue(new Uint8Array([1])),
 }));
 
 import { ImageResponse } from "../html";

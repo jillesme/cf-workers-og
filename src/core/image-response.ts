@@ -6,6 +6,7 @@ type ParseHtml = (html: string) => ReactNode;
 
 type CreateImageResponseConfig = {
   renderSvg: (element: ReactNode, options: SatoriOptions) => Promise<string>;
+  renderPng?: (element: ReactNode, options: SatoriOptions) => Promise<Uint8Array>;
   parseHtml?: ParseHtml;
   compatConstructor?: boolean;
 };
@@ -31,7 +32,7 @@ export function createImageResponseClass<Input extends ImageInput>(
 export function createImageResponseClass<Input extends ImageInput>(
   config: CreateImageResponseConfig
 ): ImageResponseClass<Input> | ImageResponseCompatClass<Input> {
-  const { renderSvg, parseHtml, compatConstructor = false } = config;
+  const { renderSvg, renderPng, parseHtml, compatConstructor = false } = config;
 
   class ImageResponseCore extends Response {
     static async create(
@@ -41,18 +42,23 @@ export function createImageResponseClass<Input extends ImageInput>(
       const reactElement = resolveElement(element, parseHtml);
       const normalized = normalizeOptions(options);
 
-      if (normalized.format !== "svg") {
-        throw new Error(
-          "cf-workers-og: PNG output is not supported yet; use format: \"svg\""
-        );
-      }
-
-      const svg = await renderSvg(reactElement, {
+      const satoriOptions = {
         width: normalized.width,
         height: normalized.height,
         fonts: await resolveFonts(normalized.fonts),
         debug: normalized.debug,
-      });
+      };
+
+      let body: string | Uint8Array;
+      if (normalized.format === "svg") {
+        body = await renderSvg(reactElement, satoriOptions);
+      } else if (renderPng) {
+        body = await renderPng(reactElement, satoriOptions);
+      } else {
+        throw new Error(
+          "cf-workers-og: PNG output is not supported in this runtime"
+        );
+      }
 
       const responseHeaders = buildResponseHeaders(
         new Headers(),
@@ -61,7 +67,7 @@ export function createImageResponseClass<Input extends ImageInput>(
         normalized.headers
       );
 
-      return new Response(svg, {
+      return new Response(body, {
         headers: responseHeaders,
         status: normalized.status,
         statusText: normalized.statusText,

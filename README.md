@@ -7,7 +7,7 @@ An SVG-focused wrapper around [Satori](https://github.com/vercel/satori) + Yoga 
 - Designed for Workers; includes Node.js bindings for local dev
 - Works with both **Vite dev** and **Wrangler dev**
 - Uses modern, maintained WASM dependencies
-- SVG output today; PNG support will be added once resvg is wired in
+- SVG and PNG output (PNG via resvg WASM)
 - Optional HTML string parsing (using battle-tested libraries)
 - Backwards-compatible entrypoint for workers-og users (via `cf-workers-og/compat`)
 - TypeScript support
@@ -203,7 +203,7 @@ Main entrypoint expects a React element; `cf-workers-og/html` also accepts HTML 
 const response = await ImageResponse.create(element, {
   width: 1200, // Default: 1200
   height: 630, // Default: 630
-  format: "svg", // 'png' | 'svg', Default: 'svg' (PNG not yet supported)
+  format: "svg", // 'png' | 'svg', Default: 'svg'
   fonts: [], // Font configurations
   emoji: "twemoji", // Emoji provider
   debug: false, // Disable caching for debugging
@@ -287,11 +287,10 @@ This package is a **thin wrapper** around Satori + Yoga. The heavy lifting is do
 
 | Package | Purpose | Notes |
 |---------|---------|-------|
-| `satori` | SVG rendering | SVG-only right now |
+| `satori` | SVG rendering | Outputs SVG |
 | `yoga-layout` | Flexbox layout (WASM) | Yoga 3; wasm is vendored for Workers |
+| `@resvg/resvg-wasm` | SVG → PNG | WASM renderer |
 | `htmlparser2` | HTML parsing (pure JS) | Optional entrypoint |
-
-PNG support will be added once resvg is wired in with a Workers-compatible wasm build.
 
 ## License
 

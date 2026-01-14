@@ -3,6 +3,7 @@ import { createElement } from "react";
 
 vi.mock("../runtime/satori.workerd", () => ({
   renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
+  renderPng: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
 }));
 
 import { ImageResponse, cache } from "../image-response";
@@ -28,12 +29,17 @@ describe("ImageResponse", () => {
       expect(response.headers.get("Content-Type")).toBe("image/svg+xml");
     });
 
-    it("should throw when format is png", async () => {
+    it("should create PNG response when format is png", async () => {
+      const { renderPng } = await import("../runtime/satori.workerd");
       const element = createElement("div", {}, "Test");
 
-      await expect(
-        ImageResponse.create(element, { format: "png" })
-      ).rejects.toThrow("PNG output is not supported yet");
+      const response = await ImageResponse.create(element, { format: "png" });
+
+      expect(response.headers.get("Content-Type")).toBe("image/png");
+      expect(renderPng).toHaveBeenCalledWith(
+        element,
+        expect.objectContaining({ width: 1200, height: 630 })
+      );
     });
 
     it("should set cache headers by default", async () => {

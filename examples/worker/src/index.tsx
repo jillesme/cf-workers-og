@@ -112,6 +112,30 @@ export default {
       );
     }
 
+    // Route: /png - PNG format output
+    if (path === "/png") {
+      return ImageResponse.create(
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
+            background: "#0f172a",
+            color: "#f8fafc",
+            fontFamily: "Inter",
+          }}
+        >
+          <h1 style={{ fontSize: 48 }}>PNG Output</h1>
+        </div>,
+        {
+          format: "png",
+          fonts: [new GoogleFont("Inter", { weight: 700 })],
+        }
+      );
+    }
+
     // Default: show usage instructions
     return new Response(
       `
@@ -134,6 +158,7 @@ export default {
     <li><a href="/jsx?title=Custom%20Title">/jsx?title=Custom Title</a> - With custom title</li>
     <li><a href="/html">/html</a> - HTML string-based OG image</li>
     <li><a href="/svg">/svg</a> - SVG format output</li>
+    <li><a href="/png">/png</a> - PNG format output</li>
   </ul>
   <h2>Preview</h2>
   <img src="/jsx" alt="OG Image Preview" />
