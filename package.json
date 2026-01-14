@@ -1,6 +1,6 @@
 {
   "name": "cf-workers-og",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "description": "Generate Open Graph images on Cloudflare Workers with Vite support",
   "main": "./dist/index.js",

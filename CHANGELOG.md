@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.1] - 2026-01-14
+
+### Fixed
+
+- Workers timeout when `satori` is resolved from consumer dependencies by bundling the patched
+  loader into the published build output
+
 ## [3.0.0] - 2026-01-14
 
 ### Breaking Changes

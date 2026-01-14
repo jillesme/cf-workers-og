@@ -23,8 +23,6 @@ export default defineConfig({
         "style-to-js",
         "react",
         "react/jsx-runtime",
-        "satori",
-        "satori/standalone",
         "@resvg/resvg-wasm",
         "node:fs/promises",
         /\.wasm$/,
