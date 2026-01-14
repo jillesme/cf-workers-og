@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-01-14
+
+### Breaking Changes
+
+- **PNG is now the default output** - use `format: "svg"` for SVG
+- **Removed compat entrypoint** - only `cf-workers-og` and `cf-workers-og/html` remain
+- **Constructor usage removed** - use `ImageResponse.create(...)` only
+- **HTML strings accepted directly** in `cf-workers-og/html` (no `parseHtml` required)
+
+### Added
+
+- Latest `satori@0.18.3` + `yoga-layout@3.2.1` with Workers-safe module init
+- SVG -> PNG via `@resvg/resvg-wasm` with vendored WASM assets
+- Bundled Roboto Regular fallback font (prevents "no fonts loaded" errors)
+- `LEARNINGS.md` restored and expanded for long-term context
+- `scripts/refresh-yoga-wasm.mjs` and `scripts/refresh-resvg-wasm.mjs`
+
+### Changed
+
+- Workerd runtime now loads Yoga and resvg as module-based WASM imports
+- Build now ships `dist/wasm/{yoga,resvg}.wasm`
+- HTML entrypoint now prefers raw string inputs for convenience
+
+### Fixed
+
+- workerd errors from byte-compiled WASM (`Wasm code generation disallowed`)
+- workerd init hangs when Yoga is a WebAssembly module or instance
+
 ## [2.0.0] - 2026-01-12
 
 ### Breaking Changes
@@ -31,7 +59,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 
-- `LEARNINGS.md` - content moved to README "Why Not workers-og?" section
+- `LEARNINGS.md` - content moved to README "Why Not workers-og?" section (restored in 3.0.0)
 
 ## [1.0.1] - 2026-01-11
 

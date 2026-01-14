@@ -24,7 +24,7 @@ export type FontStyle = "normal" | "italic";
  */
 export interface FontConfig {
   name: string;
-  data: ArrayBuffer;
+  data: ArrayBuffer | ArrayBufferView;
   weight?: FontWeight;
   style?: FontStyle;
 }
@@ -34,7 +34,10 @@ export interface FontConfig {
  */
 export interface AsyncFontConfig {
   name: string;
-  data: ArrayBuffer | Promise<ArrayBuffer>;
+  data:
+    | ArrayBuffer
+    | ArrayBufferView
+    | Promise<ArrayBuffer | ArrayBufferView>;
   weight?: FontWeight;
   style?: FontStyle;
 }
@@ -69,6 +72,7 @@ export interface ImageResponseOptions {
   /**
    * Fonts to use for rendering text.
    * Accepts FontConfig (manual loading) or GoogleFont/CustomFont classes.
+   * If omitted, a bundled Roboto Regular font is used by default.
    */
   fonts?: FontInput[];
 

@@ -1,9 +1,11 @@
-import { ImageResponse as CfImageResponse } from "@cf-wasm/og/workerd";
 import type { ReactNode } from "react";
 import { createImageResponseClass } from "./core/image-response";
+import { renderPng, renderSvg } from "./runtime/satori.workerd";
+import { cache } from "./cache";
 
-export { cache } from "@cf-wasm/og/workerd";
+export { cache };
 
 export const ImageResponse = createImageResponseClass<ReactNode>({
-  cfImageResponse: CfImageResponse,
+  renderSvg,
+  renderPng,
 });

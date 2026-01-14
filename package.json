@@ -1,6 +1,6 @@
 {
   "name": "cf-workers-og",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "type": "module",
   "description": "Generate Open Graph images on Cloudflare Workers with Vite support",
   "main": "./dist/index.js",
@@ -50,35 +50,13 @@
     "./workerd/html": {
       "types": "./dist/html.d.ts",
       "import": "./dist/html.js"
-    },
-    "./compat": {
-      "node": {
-        "types": "./dist/compat.node.d.ts",
-        "import": "./dist/compat.node.js"
-      },
-      "workerd": {
-        "types": "./dist/compat.d.ts",
-        "import": "./dist/compat.js"
-      },
-      "default": {
-        "types": "./dist/compat.d.ts",
-        "import": "./dist/compat.js"
-      }
-    },
-    "./node/compat": {
-      "types": "./dist/compat.node.d.ts",
-      "import": "./dist/compat.node.js"
-    },
-    "./workerd/compat": {
-      "types": "./dist/compat.d.ts",
-      "import": "./dist/compat.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly",
+    "build": "vite build && node scripts/copy-wasm.mjs && tsc --emitDeclarationOnly",
     "dev": "vite build --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -91,8 +69,9 @@
     "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build"
   },
   "dependencies": {
-    "@cf-wasm/og": "^0.3.0",
+    "@resvg/resvg-wasm": "^2.6.2",
     "htmlparser2": "^10.0.0",
+    "satori": "0.18.3",
     "style-to-js": "^1.1.21"
   },
   "devDependencies": {
@@ -136,5 +115,11 @@
   "homepage": "https://github.com/jillesme/cf-workers-og#readme",
   "engines": {
     "node": ">=18"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "satori@0.18.3": "patches/satori@0.18.3.patch",
+      "yoga-layout@3.2.1": "patches/yoga-layout@3.2.1.patch"
+    }
   }
 }

@@ -2,14 +2,23 @@
 
 Generate Open Graph images on Cloudflare Workers with Node.js bindings for local Vite dev.
 
-A thin wrapper around [@cf-wasm/og](https://github.com/fineshopdesign/cf-wasm) that provides:
+A Workers-first wrapper around [Satori](https://github.com/vercel/satori) + Yoga WASM
+with PNG output via resvg that provides:
 
 - Designed for Workers; includes Node.js bindings for local dev
 - Works with both **Vite dev** and **Wrangler dev**
 - Uses modern, maintained WASM dependencies
+- SVG and PNG output (PNG via resvg WASM)
 - Optional HTML string parsing (using battle-tested libraries)
-- Backwards-compatible entrypoint for workers-og users (via `cf-workers-og/compat`)
 - TypeScript support
+
+## V3 Release Highlights (3.0.0)
+
+- Latest Satori 0.18.3 + Yoga 3.2.1 with Workers-safe WASM initialization
+- PNG output by default (SVG still available with `format: "svg"`)
+- SVG -> PNG via `@resvg/resvg-wasm` with vendored WASM assets
+- HTML strings accepted directly in `cf-workers-og/html`
+- Bundled Roboto Regular fallback font (no more "no fonts loaded" errors)
 
 ## Installation
 
@@ -51,6 +60,8 @@ export default {
 
 ### With Google Fonts
 
+Fonts are optional; if you don’t pass any, the bundled Roboto Regular is used.
+
 ```tsx
 import { ImageResponse, GoogleFont, cache } from "cf-workers-og";
 
@@ -88,10 +99,11 @@ export default {
 ### HTML String Usage
 
 Use HTML parsing only if you need it. For new projects, JSX is the simplest and most reliable.
-HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint. For workers-og constructor compatibility, use `cf-workers-og/compat`.
+HTML parsing is available via the opt-in `cf-workers-og/html` entrypoint, and you can pass
+raw HTML strings directly to `ImageResponse.create(...)`.
 
 ```typescript
-import { ImageResponse, parseHtml } from "cf-workers-og/html";
+import { ImageResponse } from "cf-workers-og/html";
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
@@ -101,7 +113,7 @@ export default {
       </div>
     `;
 
-    return ImageResponse.create(parseHtml(html), {
+    return ImageResponse.create(html, {
       width: 1200,
       height: 630,
     });
@@ -127,61 +139,67 @@ Vite dev runs in Node.js, so this package ships Node bindings that should be pic
 ## Which entrypoint should I use?
 
 - `cf-workers-og` (recommended): JSX input only, clean API for new users.
-- `cf-workers-og/html`: adds `parseHtml` and accepts HTML strings in `ImageResponse.create`.
-- `cf-workers-og/compat`: legacy constructor behavior and HTML strings for migrating from workers-og.
-- If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`, `cf-workers-og/workerd`, and their `/html` or `/compat` variants.
+- `cf-workers-og/html`: accepts raw HTML strings in `ImageResponse.create`.
+- If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node`,
+  `cf-workers-og/workerd`, and their `/html` variants.
+
+## How cf-workers-og works (and why it is reliable)
+
+This package is intentionally small, but the pipeline is carefully tuned for the Workers runtime:
+
+- **Inputs**: You can pass JSX directly, or (via `cf-workers-og/html`) supply a raw HTML string.
+  The HTML entrypoint uses `htmlparser2` + `style-to-js` to turn HTML into React nodes that
+  Satori understands.
+- **Layout**: Satori performs layout with Yoga WASM. In Workers, raw-byte compilation is
+  disallowed, so Yoga is imported as a WebAssembly module and initialized once. The loader is
+  patched to accept `WebAssembly.Module`/`WebAssembly.Instance`, which is the only safe path
+  in workerd.
+- **Rendering**: Satori outputs SVG. For PNG output, the SVG is rendered by `@resvg/resvg-wasm`,
+  again using a precompiled WASM module so there is no runtime compilation.
+- **Assets**: WASM binaries are vendored and copied into `dist/wasm`, so they can be loaded
+  without network access at runtime.
+- **Fonts**: A bundled Roboto Regular fallback prevents layout failure when no fonts are
+  provided. If you use `GoogleFont`, the Cloudflare Cache API is used to avoid re-fetching
+  (and requires `cache.setExecutionContext(ctx)`).
+
+The result is a Workers-first pipeline that runs in both **Vite dev** (Node) and **Wrangler dev**
+workerd with consistent behavior. We do not claim it is the only solution, but it is a practical
+and well-scoped one that matches Workers' constraints without sacrificing output quality.
 
 ## Why Not workers-og?
 
 The original [workers-og](https://github.com/syedashar1/workers-og) has fundamental issues that make it unsuitable for production use.
 
-### 1. Outdated WASM Dependencies
+### The blockers we hit in Workers
 
-workers-og uses `yoga-wasm-web@0.3.3` which has been **unmaintained since 2023**. The Yoga project moved to Yoga 3.0 with a `SINGLE_FILE=1` compilation that inlines WASM as base64 - incompatible with Cloudflare Workers' module-based WASM loading. Satori itself now uses an internal patched version instead of `yoga-wasm-web`, fragmenting the ecosystem.
+- **WASM byte compilation is disallowed** in workerd, so loaders that call
+  `WebAssembly.instantiate(bytes)` fail at runtime.
+- **Outdated Yoga WASM**: `yoga-wasm-web@0.3.3` is unmaintained and incompatible
+  with Yoga 3’s `SINGLE_FILE=1` base64 output (also not Workers-safe).
+- **Brittle HTML/CSS parsing**: regex-based parsing breaks on real-world CSS.
+- **Build tooling gap**: workers-og is esbuild-only and doesn’t play well with
+  Vite library builds and export conditions.
 
-### 2. Brittle HTML Parsing
+### How cf-workers-og v3 solves this (engineering highlights)
 
-The HTML parser builds JSON via string concatenation:
-
-```typescript
-// workers-og approach - error-prone
-vdomStr += `{"type":"${element.tagName}", "props":{${attrs}"children": [`;
-```
-
-The code comments even acknowledge: *"very error prone. So it might need more hardening"*. The `sanitizeJSON` function only handles basic escapes, missing edge cases.
-
-### 3. Style Parsing Fails on Complex CSS
-
-workers-og uses regex to parse CSS: `;(?![^(]*\))`. This fails on:
-- Nested parentheses: `calc(100% - (10px + 5px))`
-- Data URIs: `url(data:image/png;base64,...)`
-- Complex CSS with multiple function calls
-
-### 4. No Vite Support
-
-workers-og uses esbuild's copy loader for WASM, which is incompatible with Vite. The library only works with `wrangler dev`, not `vite dev` with `@cloudflare/vite-plugin`.
-
-### 5. Debug Logs in Production
-
-```typescript
-console.log("init RESVG");  // Left in production code
-```
-
-### How cf-workers-og Solves These
-
-| Issue | cf-workers-og Solution |
-|-------|----------------------|
-| **Outdated WASM** | Uses `@cf-wasm/og` (actively maintained, Dec 2025) with current yoga and resvg |
-| **Brittle HTML parsing** | Uses [htmlparser2](https://github.com/fb55/htmlparser2) - a battle-tested streaming parser with no browser dependencies |
-| **Style parsing** | Uses [style-to-js](https://www.npmjs.com/package/style-to-js) (1M+ weekly downloads) - handles all CSS edge cases |
-| **No Vite support** | Works with `@cloudflare/vite-plugin` via proper conditional exports for node/workerd |
-| **Debug logs** | Clean production code |
+- **Latest Satori + Yoga**: uses `satori@0.18.3` with `yoga-layout@3.2.1` and a
+  patched loader that accepts `WebAssembly.Module/Instance`.
+- **Workers-safe WASM**: Yoga + resvg WASM are vendored and imported as modules,
+  never compiled from raw bytes at runtime.
+- **PNG by default**: SVG → PNG via `@resvg/resvg-wasm`, with `format: "svg"`
+  available when you want raw SVG.
+- **Zero-config fonts**: bundled Roboto Regular so layout never fails when users
+  omit fonts; custom fonts still fully supported.
+- **Reliable HTML/CSS**: `htmlparser2` + `style-to-js` handle edge cases that
+  workers-og’s regex parsing misses.
+- **Vite + Wrangler ready**: proper export conditions, wasm assets copied to
+  `dist/wasm`, and no bundler-specific hacks required.
 
 ### Design Decisions
 
-**Why wrap @cf-wasm/og instead of building from scratch?**
+**Why Satori + Yoga instead of building from scratch?**
 
-WASM on Cloudflare Workers is genuinely hard. Workers cannot compile WASM from arbitrary data blobs - you must import as modules. Rather than maintain custom yoga-wasm builds, we wrap `@cf-wasm/og` which already solves Vite + Wrangler compatibility.
+WASM on Cloudflare Workers is genuinely hard. Workers cannot compile WASM from arbitrary data blobs - you must import as modules. Satori already provides a well-tested SVG renderer, so we focus on making its Yoga WASM initialization work in Workers.
 
 **Why htmlparser2 instead of html-react-parser?**
 
@@ -191,7 +209,9 @@ WASM on Cloudflare Workers is genuinely hard. Workers cannot compile WASM from a
 
 ### Entry points
 
-Use `cf-workers-og` for Workers with JSX input, `cf-workers-og/html` for HTML strings, and `cf-workers-og/compat` only when migrating from workers-og. If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or `cf-workers-og/workerd` (and the `/html` or `/compat` variants).
+Use `cf-workers-og` for Workers with JSX input and `cf-workers-og/html` for HTML strings.
+If your bundler ignores export conditions, use explicit paths like `cf-workers-og/node` or
+`cf-workers-og/workerd` (and the `/html` variants).
 
 ### `ImageResponse.create(element, options)`
 
@@ -203,21 +223,13 @@ const response = await ImageResponse.create(element, {
   width: 1200, // Default: 1200
   height: 630, // Default: 630
   format: "png", // 'png' | 'svg', Default: 'png'
-  fonts: [], // Font configurations
+  fonts: [], // Font configurations (defaults to bundled Roboto Regular)
   emoji: "twemoji", // Emoji provider
   debug: false, // Disable caching for debugging
   headers: {}, // Additional response headers
   status: 200, // HTTP status code
   statusText: "", // HTTP status text
 });
-```
-
-### `parseHtml(html)`
-
-Parse an HTML string into React elements for Satori. Exported from `cf-workers-og/html` and `cf-workers-og/compat`.
-
-```typescript
-const element = parseHtml('<div style="display: flex;">Hello</div>');
 ```
 
 ### `GoogleFont(family, options)`
@@ -261,13 +273,13 @@ Note that cache is only used if you use GoogleFonts. Otherwise it is a drop-in r
 
 ```diff
 - import { ImageResponse } from 'workers-og';
-+ import { ImageResponse, cache } from 'cf-workers-og/compat';
++ import { ImageResponse, cache } from 'cf-workers-og';
 
 export default {
   async fetch(request, env, ctx) {
 +   cache.setExecutionContext(ctx);
 
-    return new ImageResponse(element, options);
+    return ImageResponse.create(element, options);
   }
 };
 ```
@@ -276,21 +288,20 @@ For HTML string users:
 
 ```diff
 - return new ImageResponse(htmlString, options);
-+ import { ImageResponse, parseHtml } from 'cf-workers-og/html';
-+ return ImageResponse.create(parseHtml(htmlString), options);
++ import { ImageResponse } from 'cf-workers-og/html';
++ return ImageResponse.create(htmlString, options);
 ```
 
 ## Architecture
 
-This package is a **thin wrapper** (6 KB) around `@cf-wasm/og`. The heavy lifting is done by:
+This package is a **thin wrapper** around Satori + Yoga. The heavy lifting is done by:
 
-| Package | Size | Purpose |
-|---------|------|---------|
-| `@cf-wasm/resvg` | 2.4 MB | SVG → PNG rendering (WASM) |
-| `@cf-wasm/satori` | 87 KB | Flexbox layout engine (WASM) |
-| `htmlparser2` | ~42 KB | HTML parsing (pure JS) |
-
-The WASM files are installed as transitive dependencies - they're not bundled in this package.
+| Package | Purpose | Notes |
+|---------|---------|-------|
+| `satori` | SVG rendering | Outputs SVG |
+| `yoga-layout` | Flexbox layout (WASM) | Yoga 3; wasm is vendored for Workers |
+| `@resvg/resvg-wasm` | SVG → PNG | WASM renderer |
+| `htmlparser2` | HTML parsing (pure JS) | Optional entrypoint |
 
 ## License
 

@@ -1,16 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createElement } from "react";
 
-vi.mock("@cf-wasm/og/node", () => ({
-  ImageResponse: {
-    async: vi.fn().mockResolvedValue({
-      body: new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
-      headers: new Headers(),
-    }),
-  },
-  cache: {
-    setExecutionContext: vi.fn(),
-  },
+vi.mock("../runtime/satori.node", () => ({
+  renderSvg: vi.fn().mockResolvedValue("<svg></svg>"),
+  renderPng: vi.fn().mockResolvedValue(new Uint8Array([1])),
 }));
 
 import { ImageResponse } from "../image-response.node";
@@ -29,17 +22,14 @@ describe("ImageResponse (node)", () => {
   });
 
   it("should use default width and height", async () => {
-    const { ImageResponse: MockedCfImageResponse } = await import("@cf-wasm/og/node");
+    const { renderPng } = await import("../runtime/satori.node");
     const element = createElement("div", {}, "Test");
 
     await ImageResponse.create(element);
 
-    expect(MockedCfImageResponse.async).toHaveBeenCalledWith(
+    expect(renderPng).toHaveBeenCalledWith(
       element,
-      expect.objectContaining({
-        width: 1200,
-        height: 630,
-      })
+      expect.objectContaining({ width: 1200, height: 630 })
     );
   });
 

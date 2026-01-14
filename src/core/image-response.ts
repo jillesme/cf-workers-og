@@ -1,50 +1,33 @@
 import type { ReactNode } from "react";
-import type { EmojiType, FontInput, ImageResponseOptions } from "../types";
-
-type CfImageResponseOptions = {
-  width: number;
-  height: number;
-  format: "png" | "svg";
-  fonts: FontInput[];
-  emoji?: EmojiType;
-};
-
-type CfImageResponse = {
-  async: (element: ReactNode, options: CfImageResponseOptions) => Promise<Response>;
-};
+import type { FontInput, ImageResponseOptions } from "../types";
+import type { Font, SatoriOptions } from "satori/standalone";
+import {
+  DEFAULT_FONT_NAME,
+  DEFAULT_FONT_STYLE,
+  DEFAULT_FONT_WEIGHT,
+  getDefaultFontData,
+} from "../fonts/default-font";
 
 type ParseHtml = (html: string) => ReactNode;
 
 type CreateImageResponseConfig = {
-  cfImageResponse: CfImageResponse;
+  renderSvg: (element: ReactNode, options: SatoriOptions) => Promise<string>;
+  renderPng?: (element: ReactNode, options: SatoriOptions) => Promise<Uint8Array>;
   parseHtml?: ParseHtml;
-  compatConstructor?: boolean;
 };
 
 type ImageInput = ReactNode | string;
 
 export type ImageResponseClass<Input extends ImageInput> = {
-  new (element: Input, options?: ImageResponseOptions): Response;
   create(element: Input, options?: ImageResponseOptions): Promise<Response>;
 };
 
-export type ImageResponseCompatClass<Input extends ImageInput> = {
-  new (element: Input, options?: ImageResponseOptions): Promise<Response>;
-  create(element: Input, options?: ImageResponseOptions): Promise<Response>;
-};
-
-export function createImageResponseClass<Input extends ImageInput>(
-  config: CreateImageResponseConfig & { compatConstructor: true }
-): ImageResponseCompatClass<Input>;
-export function createImageResponseClass<Input extends ImageInput>(
-  config: CreateImageResponseConfig & { compatConstructor?: false }
-): ImageResponseClass<Input>;
 export function createImageResponseClass<Input extends ImageInput>(
   config: CreateImageResponseConfig
-): ImageResponseClass<Input> | ImageResponseCompatClass<Input> {
-  const { cfImageResponse, parseHtml, compatConstructor = false } = config;
+): ImageResponseClass<Input> {
+  const { renderSvg, renderPng, parseHtml } = config;
 
-  class ImageResponseCore extends Response {
+  class ImageResponseCore {
     static async create(
       element: Input,
       options: ImageResponseOptions = {}
@@ -52,43 +35,37 @@ export function createImageResponseClass<Input extends ImageInput>(
       const reactElement = resolveElement(element, parseHtml);
       const normalized = normalizeOptions(options);
 
-      const response = await cfImageResponse.async(reactElement, {
+      const satoriOptions = {
         width: normalized.width,
         height: normalized.height,
-        format: normalized.format,
-        fonts: normalized.fonts,
-        emoji: normalized.emoji,
-      });
+        fonts: await resolveFonts(normalized.fonts),
+        debug: normalized.debug,
+      };
+
+      let body: string | Uint8Array;
+      if (normalized.format === "svg") {
+        body = await renderSvg(reactElement, satoriOptions);
+      } else if (renderPng) {
+        body = await renderPng(reactElement, satoriOptions);
+      } else {
+        throw new Error(
+          "cf-workers-og: PNG output is not supported in this runtime"
+        );
+      }
 
       const responseHeaders = buildResponseHeaders(
-        response.headers,
+        new Headers(),
         normalized.format,
         normalized.debug,
         normalized.headers
       );
 
-      return new Response(response.body, {
+      return new Response(body, {
         headers: responseHeaders,
         status: normalized.status,
         statusText: normalized.statusText,
       });
     }
-
-    constructor(element: Input, options: ImageResponseOptions = {}) {
-      super(null);
-      if (!compatConstructor) {
-        throw new Error(
-          "cf-workers-og: use ImageResponse.create(...) or import from cf-workers-og/compat"
-        );
-      }
-      return ImageResponseCore.create(element, options) as unknown as ImageResponseCore;
-    }
-  }
-
-  if (compatConstructor) {
-    // Cast through unknown to model legacy workers-og constructor behavior.
-    // The runtime returns a Promise, but TS cannot express that on classes.
-    return ImageResponseCore as unknown as ImageResponseCompatClass<Input>;
   }
 
   return ImageResponseCore as ImageResponseClass<Input>;
@@ -101,7 +78,7 @@ function resolveElement<Input extends ImageInput>(
   if (typeof element === "string") {
     if (!parseHtml) {
       throw new Error(
-        "cf-workers-og: HTML string input requires cf-workers-og/html or cf-workers-og/compat"
+        "cf-workers-og: HTML string input requires cf-workers-og/html"
       );
     }
     return parseHtml(element);
@@ -116,7 +93,6 @@ function normalizeOptions(options: ImageResponseOptions) {
     height: options.height ?? 630,
     format: options.format ?? "png",
     fonts: options.fonts ?? [],
-    emoji: options.emoji,
     debug: options.debug ?? false,
     headers: options.headers ?? {},
     status: options.status ?? 200,
@@ -149,4 +125,45 @@ function buildResponseHeaders(
   }
 
   return responseHeaders;
+}
+
+async function resolveFonts(fonts: FontInput[]): Promise<Font[]> {
+  const resolvedFonts: Font[] = [];
+
+  if (fonts.length === 0) {
+    resolvedFonts.push({
+      name: DEFAULT_FONT_NAME,
+      data: getDefaultFontData(),
+      weight: DEFAULT_FONT_WEIGHT,
+      style: DEFAULT_FONT_STYLE,
+    });
+    return resolvedFonts;
+  }
+
+  for (const font of fonts) {
+    const data = await Promise.resolve(font.data);
+    resolvedFonts.push({
+      name: font.name,
+      data: normalizeFontData(data),
+      weight: font.weight,
+      style: font.style,
+    });
+  }
+
+  return resolvedFonts;
+}
+
+function normalizeFontData(data: ArrayBuffer | ArrayBufferView) {
+  const bufferCtor = (globalThis as { Buffer?: { isBuffer?: (value: unknown) => boolean } })
+    .Buffer;
+  if (bufferCtor?.isBuffer?.(data)) {
+    return data;
+  }
+
+  if (data instanceof ArrayBuffer) {
+    return data;
+  }
+
+  const { buffer, byteOffset, byteLength } = data;
+  return buffer.slice(byteOffset, byteOffset + byteLength);
 }

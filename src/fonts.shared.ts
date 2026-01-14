@@ -1,10 +1,13 @@
-import type { FontWeight, GoogleFontOptions } from "./types";
+import { cache } from "./cache";
+import type { FontStyle, FontWeight, GoogleFontOptions } from "./types";
+
+type FontData = ArrayBuffer | ArrayBufferView;
 
 /**
  * Load a Google Font and return its data as an ArrayBuffer.
  *
  * This is a backwards-compatible function for users migrating from workers-og.
- * For new code, prefer using `GoogleFont` class from `@cf-wasm/og`.
+ * For new code, prefer using the `GoogleFont` class.
  */
 export async function loadGoogleFont(
   options: GoogleFontOptions
@@ -47,7 +50,9 @@ export async function loadGoogleFont(
     if (cfCache) {
       const cacheResponse = new Response(cssResponse.body, cssResponse);
       cacheResponse.headers.set("Cache-Control", "s-maxage=3600");
-      await cfCache.put(cssUrl, cacheResponse.clone());
+      const putPromise = cfCache.put(cssUrl, cacheResponse.clone());
+      cache.waitUntil(putPromise);
+      await putPromise;
       cssResponse = cacheResponse;
     }
   }
@@ -55,7 +60,7 @@ export async function loadGoogleFont(
   const css = await cssResponse.text();
 
   const fontUrlMatch = css.match(
-    /src: url\(([^)]+)\) format\(['"]?(opentype|truetype)['"]?\)/
+    /src: url\(([^)]+)\) format\(['"]?(opentype|truetype|woff2?|woff)['"]?\)/
   );
 
   if (!fontUrlMatch?.[1]) {
@@ -64,9 +69,48 @@ export async function loadGoogleFont(
     );
   }
 
-  const fontUrl = fontUrlMatch[1];
+  const fontUrl = fontUrlMatch[1].replace(/['"]/g, "");
   const fontResponse = await fetch(fontUrl);
   return fontResponse.arrayBuffer();
+}
+
+export class GoogleFont {
+  name: string;
+  data: Promise<ArrayBuffer>;
+  weight?: FontWeight;
+  style?: FontStyle;
+
+  constructor(
+    family: string,
+    options: { weight?: FontWeight; style?: FontStyle; text?: string } = {}
+  ) {
+    this.name = family;
+    this.weight = options.weight;
+    this.style = options.style;
+    this.data = loadGoogleFont({
+      family,
+      weight: options.weight,
+      text: options.text,
+    });
+  }
+}
+
+export class CustomFont {
+  name: string;
+  data: FontData | Promise<FontData>;
+  weight?: FontWeight;
+  style?: FontStyle;
+
+  constructor(
+    name: string,
+    data: FontData | Promise<FontData>,
+    options: { weight?: FontWeight; style?: FontStyle } = {}
+  ) {
+    this.name = name;
+    this.data = data;
+    this.weight = options.weight;
+    this.style = options.style;
+  }
 }
 
 /**

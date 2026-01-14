@@ -2,19 +2,19 @@
  * cf-workers-og (Node.js HTML entry point)
  */
 
-import { ImageResponse as CfImageResponse } from "@cf-wasm/og/node";
 import type { ReactNode } from "react";
 import { createImageResponseClass } from "./core/image-response";
 import { parseHtml } from "./html-parser";
+import { renderPng, renderSvg } from "./runtime/satori.node";
+import { cache } from "./cache";
 
-export { cache } from "@cf-wasm/og/node";
+export { cache };
 
 export const ImageResponse = createImageResponseClass<ReactNode | string>({
-  cfImageResponse: CfImageResponse,
+  renderSvg,
+  renderPng,
   parseHtml,
 });
-
-export { parseHtml } from "./html-parser";
 
 export { GoogleFont, CustomFont, loadGoogleFont, createFontConfig } from "./fonts.node";
 
