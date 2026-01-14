@@ -16,8 +16,6 @@ export const ImageResponse = createImageResponseClass<ReactNode | string>({
   parseHtml,
 });
 
-export { parseHtml } from "./html-parser";
-
 export { GoogleFont, CustomFont, loadGoogleFont, createFontConfig } from "./fonts.node";
 
 export type {
