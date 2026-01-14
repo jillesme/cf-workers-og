@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.0.0] - 2026-01-13
+## [3.0.0] - 2026-01-14
 
 ### Breaking Changes
 
@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - workerd errors from byte-compiled WASM (`Wasm code generation disallowed`)
+- workerd init hangs when Yoga is a WebAssembly module or instance
 
 ## [2.0.0] - 2026-01-12
 
