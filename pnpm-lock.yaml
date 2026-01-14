@@ -4,6 +4,14 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  satori@0.18.3:
+    hash: 61035467a35d7a734d0dfc395f291fd9ee6545900cac91a22499ce830c1946a2
+    path: patches/satori@0.18.3.patch
+  yoga-layout@3.2.1:
+    hash: 46a427a88f08b0b95408d6fab3263a25b87776d9f9f5a40e08296dc695f320e8
+    path: patches/yoga-layout@3.2.1.patch
+
 importers:
 
   .:
@@ -18,8 +26,8 @@ importers:
         specifier: '>=18.0.0'
         version: 19.2.3
       satori:
-        specifier: github:jillesme/satori#e47e29e5e4f8a320b36e45b320b22d8839bcc02f
-        version: https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f
+        specifier: 0.18.3
+        version: 0.18.3(patch_hash=61035467a35d7a734d0dfc395f291fd9ee6545900cac91a22499ce830c1946a2)
       style-to-js:
         specifier: ^1.1.21
         version: 1.1.21
@@ -1436,9 +1444,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  satori@https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f:
-    resolution: {tarball: https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f}
-    version: 0.0.0-development
+  satori@0.18.3:
+    resolution: {integrity: sha512-T3DzWNmnrfVmk2gCIlAxLRLbGkfp3K7TyRva+Byyojqu83BNvnMeqVeYRdmUw4TKCsyH4RiQ/KuF/I4yEzgR5A==}
     engines: {node: '>=16'}
 
   semver@7.5.4:
@@ -3037,7 +3044,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.55.1
       fsevents: 2.3.3
 
-  satori@https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f:
+  satori@0.18.3(patch_hash=61035467a35d7a734d0dfc395f291fd9ee6545900cac91a22499ce830c1946a2):
     dependencies:
       '@shuding/opentype.js': 1.4.0-beta.0
       css-background-parser: 0.1.0
@@ -3049,7 +3056,7 @@ snapshots:
       linebreak: 1.1.0
       parse-css-color: 0.2.1
       postcss-value-parser: 4.2.0
-      yoga-layout: 3.2.1
+      yoga-layout: 3.2.1(patch_hash=46a427a88f08b0b95408d6fab3263a25b87776d9f9f5a40e08296dc695f320e8)
 
   semver@7.5.4:
     dependencies:
@@ -3298,4 +3305,4 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  yoga-layout@3.2.1: {}
+  yoga-layout@3.2.1(patch_hash=46a427a88f08b0b95408d6fab3263a25b87776d9f9f5a40e08296dc695f320e8): {}

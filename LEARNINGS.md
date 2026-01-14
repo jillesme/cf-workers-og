@@ -2,7 +2,11 @@ LEARNINGS
 
 Goal
 - Replace @cf-wasm/* with Satori 0.18.3 + Yoga WASM and run in Cloudflare Workers.
-- Option chosen: fork Satori + vendor wasm (start with SVG; resvg later).
+- Option chosen: npm Satori + pnpm patches for yoga-layout (Module/Instance support) and
+  satori init types; see `patches/`.
+
+Note
+- The satori-fork workflow below is legacy. Prefer the patched npm install path above.
 
 Quickstart (repeatable)
 - `pnpm -C satori-fork build`

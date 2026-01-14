@@ -1,0 +1,92 @@
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 0fe026f9ac451ec1d6a1e80696fc00caf1253681..80bac2da44d1d57b8082e68f71badea39d809f28 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -133,7 +133,17 @@ interface TwConfig {
+     }>;
+ }
+ 
+-declare function init(wasm: ArrayBuffer | Buffer): Promise<void>;
++declare function init(
++  wasm:
++    | ArrayBuffer
++    | ArrayBufferLike
++    | Buffer
++    | WebAssembly.Module
++    | WebAssembly.Instance
++    | {
++        instance: WebAssembly.Instance;
++      }
++): Promise<void>;
+ 
+ /**
+  * This module is used to calculate the layout of the current sub-tree.
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index 0fe026f9ac451ec1d6a1e80696fc00caf1253681..80bac2da44d1d57b8082e68f71badea39d809f28 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -133,7 +133,17 @@ interface TwConfig {
+     }>;
+ }
+ 
+-declare function init(wasm: ArrayBuffer | Buffer): Promise<void>;
++declare function init(
++  wasm:
++    | ArrayBuffer
++    | ArrayBufferLike
++    | Buffer
++    | WebAssembly.Module
++    | WebAssembly.Instance
++    | {
++        instance: WebAssembly.Instance;
++      }
++): Promise<void>;
+ 
+ /**
+  * This module is used to calculate the layout of the current sub-tree.
+diff --git a/dist/standalone.d.cts b/dist/standalone.d.cts
+index 0fe026f9ac451ec1d6a1e80696fc00caf1253681..80bac2da44d1d57b8082e68f71badea39d809f28 100644
+--- a/dist/standalone.d.cts
++++ b/dist/standalone.d.cts
+@@ -133,7 +133,17 @@ interface TwConfig {
+     }>;
+ }
+ 
+-declare function init(wasm: ArrayBuffer | Buffer): Promise<void>;
++declare function init(
++  wasm:
++    | ArrayBuffer
++    | ArrayBufferLike
++    | Buffer
++    | WebAssembly.Module
++    | WebAssembly.Instance
++    | {
++        instance: WebAssembly.Instance;
++      }
++): Promise<void>;
+ 
+ /**
+  * This module is used to calculate the layout of the current sub-tree.
+diff --git a/dist/standalone.d.ts b/dist/standalone.d.ts
+index 0fe026f9ac451ec1d6a1e80696fc00caf1253681..80bac2da44d1d57b8082e68f71badea39d809f28 100644
+--- a/dist/standalone.d.ts
++++ b/dist/standalone.d.ts
+@@ -133,7 +133,17 @@ interface TwConfig {
+     }>;
+ }
+ 
+-declare function init(wasm: ArrayBuffer | Buffer): Promise<void>;
++declare function init(
++  wasm:
++    | ArrayBuffer
++    | ArrayBufferLike
++    | Buffer
++    | WebAssembly.Module
++    | WebAssembly.Instance
++    | {
++        instance: WebAssembly.Instance;
++      }
++): Promise<void>;
+ 
+ /**
+  * This module is used to calculate the layout of the current sub-tree.

@@ -1,5 +1,6 @@
 packages:
-  - "."
+  - .
 
-onlyBuiltDependencies:
-  - "satori"
+patchedDependencies:
+  satori@0.18.3: patches/satori@0.18.3.patch
+  yoga-layout@3.2.1: patches/yoga-layout@3.2.1.patch
