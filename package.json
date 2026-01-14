@@ -115,5 +115,11 @@
   "homepage": "https://github.com/jillesme/cf-workers-og#readme",
   "engines": {
     "node": ">=18"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "satori@0.18.3": "patches/satori@0.18.3.patch",
+      "yoga-layout@3.2.1": "patches/yoga-layout@3.2.1.patch"
+    }
   }
 }
