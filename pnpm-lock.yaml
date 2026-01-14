@@ -18,8 +18,8 @@ importers:
         specifier: '>=18.0.0'
         version: 19.2.3
       satori:
-        specifier: file:./satori-fork
-        version: file:satori-fork
+        specifier: github:jillesme/satori#e47e29e5e4f8a320b36e45b320b22d8839bcc02f
+        version: https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f
       style-to-js:
         specifier: ^1.1.21
         version: 1.1.21
@@ -1436,8 +1436,9 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  satori@file:satori-fork:
-    resolution: {directory: satori-fork, type: directory}
+  satori@https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f:
+    resolution: {tarball: https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f}
+    version: 0.0.0-development
     engines: {node: '>=16'}
 
   semver@7.5.4:
@@ -3036,7 +3037,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.55.1
       fsevents: 2.3.3
 
-  satori@file:satori-fork:
+  satori@https://codeload.github.com/jillesme/satori/tar.gz/e47e29e5e4f8a320b36e45b320b22d8839bcc02f:
     dependencies:
       '@shuding/opentype.js': 1.4.0-beta.0
       css-background-parser: 0.1.0

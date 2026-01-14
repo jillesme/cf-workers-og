@@ -80,12 +80,12 @@ describe("ImageResponse", () => {
     });
 
     it("should accept custom width and height", async () => {
-      const { renderSvg } = await import("../runtime/satori.workerd");
+      const { renderPng } = await import("../runtime/satori.workerd");
       const element = createElement("div", {}, "Test");
 
       await ImageResponse.create(element, { width: 800, height: 400 });
 
-      expect(renderSvg).toHaveBeenCalledWith(
+      expect(renderPng).toHaveBeenCalledWith(
         element,
         expect.objectContaining({ width: 800, height: 400 })
       );
