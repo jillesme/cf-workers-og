@@ -34,3 +34,9 @@ pnpm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# Claude
+.claude/
+
+# PNPM store
+.pnpm-store/
